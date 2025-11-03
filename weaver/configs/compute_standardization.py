@@ -1,0 +1,419 @@
+#!/usr/bin/env python3
+"""
+Compute standardization parameters from all training files and generate updated configs.
+This script processes all output_*_train.root files and creates standardized configs for both pnet and part formats.
+"""
+
+import os
+import sys
+import glob
+import numpy as np
+import awkward as ak
+import yaml
+import uproot
+from pathlib import Path
+from tqdm import tqdm
+
+# Add weaver-core to path
+thisdir = os.path.abspath(os.path.dirname(__file__))
+weavercoredir = os.path.abspath(os.path.join(thisdir, '../..'))
+sys.path.append(os.path.join(weavercoredir, 'weaver'))
+sys.path.append(weavercoredir)
+
+from weaver.utils.data.config import DataConfig
+from weaver.utils.data.fileio import _read_files
+from weaver.utils.data.preprocess import _apply_selection, _build_new_variables
+from weaver.utils.data.tools import _get_variable_names
+
+class StandardizationComputer:
+    """Compute standardization parameters from all training files."""
+    
+    def __init__(self, data_dir, config_template_pnet, config_template_part, 
+                 sample_fraction=0.1, max_events_per_file=None):
+        """
+        Args:
+            data_dir: Directory containing output_*_train.root files
+            config_template_pnet: Path to ParticleNet config template
+            config_template_part: Path to ParticleTransformer config template
+            sample_fraction: Fraction of events to use from each file (default: 0.1 = 10%)
+            max_events_per_file: Maximum events per file (None = use all)
+        """
+        self.data_dir = data_dir
+        self.config_template_pnet = config_template_pnet
+        self.config_template_part = config_template_part
+        self.sample_fraction = sample_fraction
+        self.max_events_per_file = max_events_per_file
+        
+        # Find all training files
+        pattern = os.path.join(data_dir, 'output_*_train.root')
+        self.training_files = sorted(glob.glob(pattern))
+        
+        if len(self.training_files) == 0:
+            raise ValueError(f"No training files found matching pattern: {pattern}")
+        
+        print(f"Found {len(self.training_files)} training files")
+    
+    def load_data_sample(self, data_config, file_list=None):
+        """Load a sample of data from files."""
+        if file_list is None:
+            file_list = self.training_files
+        
+        print(f"\nLoading data from {len(file_list)} files...")
+        print(f"Using {self.sample_fraction*100:.1f}% of events from each file")
+        if self.max_events_per_file:
+            print(f"Maximum {self.max_events_per_file} events per file")
+        
+        # Load branches needed for preprocessing
+        all_input_vars = set()
+        for var_list in data_config.input_dicts.values():
+            all_input_vars.update(var_list)
+        
+        # Add variables needed for new_variables and selection
+        load_branches = all_input_vars.copy()
+        if data_config.selection:
+            load_branches.update(_get_variable_names(data_config.selection))
+        
+        # Add variables needed for derived variables
+        for var_name, expr in data_config.var_funcs.items():
+            load_branches.update(_get_variable_names(expr))
+        
+        # Load data from all files
+        all_tables = []
+        for filepath in tqdm(file_list, desc="Loading files"):
+            try:
+                # Determine load range
+                if self.max_events_per_file:
+                    with uproot.open(filepath) as f:
+                        treename = self._get_treename(f)
+                        tree = f[treename]
+                        total_events = tree.num_entries
+                        # Use sample_fraction but cap at max_events_per_file
+                        num_events = min(int(total_events * self.sample_fraction), self.max_events_per_file)
+                        load_range = (0, num_events / total_events)
+                else:
+                    load_range = (0, self.sample_fraction)
+                
+                # Load data
+                table = _read_files(
+                    [filepath], 
+                    load_branches, 
+                    load_range=load_range,
+                    show_progressbar=False,
+                    treename=data_config.treename,
+                    branch_magic=data_config.branch_magic,
+                    file_magic=data_config.file_magic
+                )
+                
+                if len(table) > 0:
+                    all_tables.append(table)
+                    print(f"  Loaded {len(table)} events from {os.path.basename(filepath)}")
+            except Exception as e:
+                print(f"  WARNING: Failed to load {filepath}: {e}")
+                continue
+        
+        if len(all_tables) == 0:
+            raise ValueError("No data loaded from any files!")
+        
+        # Concatenate all tables
+        from weaver.utils.data.tools import _concat
+        combined_table = _concat(all_tables)
+        print(f"\nTotal events loaded: {len(combined_table)}")
+        
+        # Apply selection and build new variables
+        if data_config.selection:
+            combined_table = _apply_selection(combined_table, data_config.selection, funcs=data_config.var_funcs)
+            print(f"Events after selection: {len(combined_table)}")
+        
+        combined_table = _build_new_variables(combined_table, data_config.var_funcs)
+        
+        return combined_table
+    
+    def _get_treename(self, uproot_file):
+        """Get tree name from uproot file."""
+        treenames = set([k.split(';')[0] for k, v in uproot_file.items() 
+                        if getattr(v, 'classname', '') == 'TTree'])
+        if len(treenames) == 1:
+            return treenames.pop()
+        elif len(treenames) == 0:
+            raise RuntimeError("No TTree found in file")
+        else:
+            raise RuntimeError(f"Multiple trees found: {treenames}")
+    
+    def compute_statistics(self, table, var_name):
+        """Compute robust statistics for a variable."""
+        try:
+            if var_name not in table.fields:
+                return None
+            
+            var_data = table[var_name]
+            
+            # Flatten if it's a jagged array
+            if isinstance(var_data, ak.Array):
+                flat_data = ak.flatten(var_data, axis=None)
+                flat_data = ak.to_numpy(flat_data)
+            else:
+                flat_data = np.array(var_data)
+            
+            # Remove NaN and Inf
+            flat_data = flat_data[np.isfinite(flat_data)]
+            
+            if len(flat_data) == 0:
+                return None
+            
+            # Compute robust statistics
+            low, center, high = np.percentile(flat_data, [16, 50, 84])
+            
+            # Robust scale (similar to AutoStandardizer)
+            scale = max(high - center, center - low)
+            scale = 1.0 if scale == 0 else 1.0 / scale
+            
+            stats = {
+                'name': var_name,
+                'count': len(flat_data),
+                'mean': float(np.mean(flat_data)),
+                'median': float(center),
+                'std': float(np.std(flat_data)),
+                'min': float(np.min(flat_data)),
+                'max': float(np.max(flat_data)),
+                'percentile_16': float(low),
+                'percentile_84': float(high),
+                'center': float(center),
+                'scale': float(scale),
+                'has_nan': np.any(np.isnan(ak.to_numpy(ak.flatten(table[var_name], axis=None)))),
+                'has_inf': np.any(np.isinf(ak.to_numpy(ak.flatten(table[var_name], axis=None)))),
+            }
+            
+            return stats
+        except Exception as e:
+            print(f"Error computing stats for {var_name}: {e}")
+            return None
+    
+    def compute_all_statistics(self, table, data_config):
+        """Compute statistics for all input variables."""
+        print(f"\n{'='*60}")
+        print("Computing Standardization Parameters")
+        print(f"{'='*60}")
+        
+        # Get all variables used in inputs
+        all_input_vars = set()
+        for var_list in data_config.input_dicts.values():
+            all_input_vars.update(var_list)
+        
+        stats_dict = {}
+        print(f"\nComputing statistics for {len(all_input_vars)} variables...")
+        
+        for var_name in sorted(all_input_vars):
+            stats = self.compute_statistics(table, var_name)
+            if stats:
+                stats_dict[var_name] = stats
+                print(f"  {var_name:30s} center={stats['center']:10.6f} scale={stats['scale']:10.6f}")
+            else:
+                print(f"  {var_name:30s} FAILED to compute statistics")
+        
+        return stats_dict
+    
+    def update_config_with_standardization(self, config_path, stats_dict, output_path):
+        """Update config file with standardization parameters."""
+        print(f"\nUpdating config: {os.path.basename(config_path)}")
+        
+        # Ensure output_path is absolute
+        output_path = os.path.abspath(output_path)
+        
+        # Load config
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        # Update preprocess method
+        if 'preprocess' not in config:
+            config['preprocess'] = {}
+        config['preprocess']['method'] = 'manual'
+        
+        # Update input variables with standardization parameters
+        for input_group in config['inputs'].values():
+            for var_entry in input_group['vars']:
+                if isinstance(var_entry, list):
+                    var_name = var_entry[0]
+                    if var_name in stats_dict:
+                        stats = stats_dict[var_name]
+                        
+                        # Ensure list has enough elements
+                        while len(var_entry) < 6:
+                            if len(var_entry) == 1:
+                                var_entry.append(None)  # center
+                            elif len(var_entry) == 2:
+                                var_entry.append(1)     # scale
+                            elif len(var_entry) == 3:
+                                var_entry.append(-999999)  # clip_min (very large = no clipping)
+                            elif len(var_entry) == 4:
+                                var_entry.append(999999)   # clip_max (very large = no clipping)
+                            elif len(var_entry) == 5:
+                                var_entry.append(0)     # pad_value
+                        
+                        # Update with standardization parameters
+                        var_entry[1] = stats['center']  # subtract_by (center)
+                        var_entry[2] = stats['scale']   # multiply_by (scale)
+                        
+                        # Disable clipping by using very large values - let robust standardization handle outliers
+                        # Note: np.clip requires actual numbers, so we use very large values to effectively disable clipping
+                        var_entry[3] = -999999  # clip_min (effectively no clipping)
+                        var_entry[4] = 999999    # clip_max (effectively no clipping)
+                        
+                        # Keep pad_value if it exists, otherwise default to 0
+                        if var_entry[5] is None:
+                            var_entry[5] = 0   # pad_value
+        
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Save updated config
+        with open(output_path, 'w') as f:
+            yaml.safe_dump(config, f, sort_keys=False, default_flow_style=False)
+        
+        print(f"  Saved to: {output_path}")
+    
+    def generate_configs(self, output_dir):
+        """Generate standardized configs for both pnet and part."""
+        print(f"\n{'='*60}")
+        print("Generating Standardized Configs")
+        print(f"{'='*60}")
+        
+        # Load configs
+        data_config_pnet = DataConfig.load(self.config_template_pnet)
+        data_config_part = DataConfig.load(self.config_template_part)
+        
+        # Load data using pnet config (both use same variables)
+        print("\nLoading data sample...")
+        table = self.load_data_sample(data_config_pnet)
+        
+        # Compute statistics
+        stats_dict_pnet = self.compute_all_statistics(table, data_config_pnet)
+        
+        # For part, we use the same statistics (same variables)
+        stats_dict_part = stats_dict_pnet.copy()
+        
+        # Generate output configs - ensure absolute paths
+        output_dir = os.path.abspath(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
+        
+        output_pnet = os.path.abspath(os.path.join(output_dir, 'data_config_pnet_standardized.yaml'))
+        output_part = os.path.abspath(os.path.join(output_dir, 'data_config_part_standardized.yaml'))
+        
+        self.update_config_with_standardization(
+            self.config_template_pnet, stats_dict_pnet, output_pnet)
+        self.update_config_with_standardization(
+            self.config_template_part, stats_dict_part, output_part)
+        
+        # Save statistics report
+        report_path = os.path.abspath(os.path.join(output_dir, 'standardization_report.txt'))
+        with open(report_path, 'w') as f:
+            f.write("="*60 + "\n")
+            f.write("Standardization Parameters Report\n")
+            f.write("="*60 + "\n\n")
+            f.write(f"Data source: {self.data_dir}\n")
+            f.write(f"Training files: {len(self.training_files)}\n")
+            f.write(f"Events used: {len(table)}\n")
+            f.write(f"Sample fraction: {self.sample_fraction*100:.1f}%\n\n")
+            
+            f.write("Standardization Parameters:\n")
+            f.write("-"*60 + "\n")
+            for var_name, stats in sorted(stats_dict_pnet.items()):
+                f.write(f"\n{var_name}:\n")
+                f.write(f"  Center (median): {stats['center']:.6f}\n")
+                f.write(f"  Scale: {stats['scale']:.6f}\n")
+                f.write(f"  Mean: {stats['mean']:.6f}, Std: {stats['std']:.6f}\n")
+                f.write(f"  Range: [{stats['min']:.6f}, {stats['max']:.6f}]\n")
+                f.write(f"  16th percentile: {stats['percentile_16']:.6f}\n")
+                f.write(f"  84th percentile: {stats['percentile_84']:.6f}\n")
+                if stats['has_nan'] or stats['has_inf']:
+                    f.write(f"  WARNING: Contains NaN or Inf values!\n")
+        
+        print(f"\nStatistics report saved to: {report_path}")
+        
+        return output_pnet, output_part, stats_dict_pnet
+
+
+def main():
+    """Main function."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description='Compute standardization parameters from all training files'
+    )
+    parser.add_argument('--data-dir', type=str, 
+                       default='/HEP/data/share/aleph/aleph-data/ntuples/mc',
+                       help='Directory containing output_*_train.root files')
+    parser.add_argument('--config-pnet', type=str,
+                       default='configs/data_config_pnet.yaml',
+                       help='Path to ParticleNet config template (relative to weaver dir)')
+    parser.add_argument('--config-part', type=str,
+                       default='configs/data_config_part.yaml',
+                       help='Path to ParticleTransformer config template (relative to weaver dir)')
+    parser.add_argument('--output-dir', type=str,
+                       default='configs/standardized_configs',
+                       help='Output directory for generated configs (relative to weaver dir)')
+    parser.add_argument('--sample-fraction', type=float, default=0.1,
+                       help='Fraction of events to use from each file (default: 0.1)')
+    parser.add_argument('--max-events-per-file', type=int, default=50000,
+                       help='Maximum events per file (default: 50000, set to 0 for no limit)')
+    
+    args = parser.parse_args()
+    
+    # Get weaver directory (where configs are and where we'll run from)
+    weaver_dir = os.path.join(weavercoredir, 'weaver')
+    
+    # Handle config paths - if absolute, use as-is; otherwise relative to weaver_dir
+    if os.path.isabs(args.config_pnet):
+        config_pnet = args.config_pnet
+    else:
+        config_pnet = os.path.join(weaver_dir, args.config_pnet)
+    
+    if os.path.isabs(args.config_part):
+        config_part = args.config_part
+    else:
+        config_part = os.path.join(weaver_dir, args.config_part)
+    
+    # Handle output dir - if absolute, use as-is; otherwise relative to weavercoredir
+    # (since paths like "weaver/configs/..." are relative to weaver-core root)
+    if os.path.isabs(args.output_dir):
+        output_dir = os.path.abspath(args.output_dir)
+    else:
+        # If path starts with "weaver/", it's relative to weavercoredir, not weaver_dir
+        if args.output_dir.startswith('weaver/'):
+            output_dir = os.path.abspath(os.path.join(weavercoredir, args.output_dir))
+        else:
+            # Otherwise, assume it's relative to weaver_dir
+            output_dir = os.path.abspath(os.path.join(weaver_dir, args.output_dir))
+    
+    # Change to weaver directory (where DataConfig expects to be)
+    os.chdir(weaver_dir)
+    
+    # Set max_events_per_file
+    max_events = args.max_events_per_file if args.max_events_per_file > 0 else None
+    
+    # Create computer
+    computer = StandardizationComputer(
+        data_dir=args.data_dir,
+        config_template_pnet=config_pnet,
+        config_template_part=config_part,
+        sample_fraction=args.sample_fraction,
+        max_events_per_file=max_events
+    )
+    
+    # Generate configs
+    output_pnet, output_part, stats_dict = computer.generate_configs(output_dir)
+    
+    print(f"\n{'='*60}")
+    print("Standardization Complete!")
+    print(f"{'='*60}")
+    print(f"\nGenerated configs:")
+    print(f"  ParticleNet: {output_pnet}")
+    print(f"  ParticleTransformer: {output_part}")
+    print(f"\nNext steps:")
+    print(f"  1. Review the generated configs")
+    print(f"  2. Copy them to configs/ directory if satisfied")
+    print(f"  3. Update run.py to use the new configs")
+
+
+if __name__ == '__main__':
+    main()
+
