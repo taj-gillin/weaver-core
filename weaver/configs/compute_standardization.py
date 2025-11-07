@@ -28,6 +28,13 @@ from weaver.utils.data.tools import _get_variable_names
 class StandardizationComputer:
     """Compute standardization parameters from all training files."""
     
+    # Variables that use -9 as dummy value for neutral particles (track-based variables)
+    TRACK_VARIABLES_WITH_DUMMY = {
+        'btagJetDistSig', 'btagJetDistVal', 'btagSip2dSig', 'btagSip2dVal',
+        'btagSip3dSig', 'btagSip3dVal', 'dxy', 'dz'
+    }
+    DUMMY_VALUE = -9.0
+    
     def __init__(self, data_dir, config_template_pnet, config_template_part, 
                  sample_fraction=0.1, max_events_per_file=None):
         """
@@ -139,6 +146,26 @@ class StandardizationComputer:
         else:
             raise RuntimeError(f"Multiple trees found: {treenames}")
     
+    def _is_track_variable_with_dummy(self, var_name):
+        """Check if variable uses -9 as dummy value."""
+        # Check if var_name matches any of the track variable names
+        # (handles both 'dxy' and 'pfcand_dxy' formats)
+        for track_var in self.TRACK_VARIABLES_WITH_DUMMY:
+            # Exact match
+            if var_name == track_var:
+                return True
+            # Match with underscore prefix (e.g., 'pfcand_dxy' matches 'dxy')
+            if var_name.endswith('_' + track_var):
+                return True
+            # Match with underscore prefix and check it's not part of another word
+            # (e.g., 'pfcand_btagJetDistSig' matches 'btagJetDistSig')
+            if var_name.endswith(track_var) and len(var_name) > len(track_var):
+                # Check that there's an underscore before the track_var
+                idx = var_name.rfind(track_var)
+                if idx > 0 and var_name[idx-1] == '_':
+                    return True
+        return False
+    
     def compute_statistics(self, table, var_name):
         """Compute robust statistics for a variable."""
         try:
@@ -157,11 +184,31 @@ class StandardizationComputer:
             # Remove NaN and Inf
             flat_data = flat_data[np.isfinite(flat_data)]
             
+            # Check if this is a track variable that uses -9 as dummy value
+            is_track_var = self._is_track_variable_with_dummy(var_name)
+            
+            # Count dummy values for reporting
+            dummy_count = 0
+            if is_track_var:
+                dummy_mask = np.isclose(flat_data, self.DUMMY_VALUE)
+                dummy_count = np.sum(dummy_mask)
+                # Exclude dummy values from statistics calculation
+                # (but keep them in the data for transformation)
+                flat_data_for_stats = flat_data[~dummy_mask]
+            else:
+                flat_data_for_stats = flat_data
+            
             if len(flat_data) == 0:
                 return None
             
-            # Compute robust statistics
-            low, center, high = np.percentile(flat_data, [16, 50, 84])
+            # Compute robust statistics using filtered data (excluding dummy values)
+            if len(flat_data_for_stats) == 0:
+                # All values are dummy values, can't compute meaningful stats
+                print(f"  WARNING: {var_name} has no non-dummy values (all are {self.DUMMY_VALUE})")
+                return None
+            
+            # Compute percentiles and statistics on non-dummy values
+            low, center, high = np.percentile(flat_data_for_stats, [16, 50, 84])
             
             # Robust scale (similar to AutoStandardizer)
             scale = max(high - center, center - low)
@@ -169,16 +216,18 @@ class StandardizationComputer:
             
             stats = {
                 'name': var_name,
-                'count': len(flat_data),
-                'mean': float(np.mean(flat_data)),
-                'median': float(center),
-                'std': float(np.std(flat_data)),
-                'min': float(np.min(flat_data)),
-                'max': float(np.max(flat_data)),
-                'percentile_16': float(low),
-                'percentile_84': float(high),
-                'center': float(center),
-                'scale': float(scale),
+                'count': len(flat_data),  # Total count (including dummy values)
+                'count_non_dummy': len(flat_data_for_stats),  # Count excluding dummy values
+                'dummy_count': int(dummy_count),  # Count of dummy values
+                'mean': float(np.mean(flat_data_for_stats)),  # Mean excluding dummy values
+                'median': float(center),  # Median excluding dummy values
+                'std': float(np.std(flat_data_for_stats)),  # Std excluding dummy values
+                'min': float(np.min(flat_data)),  # Min including dummy values (for reporting)
+                'max': float(np.max(flat_data)),  # Max including dummy values (for reporting)
+                'percentile_16': float(low),  # Percentile excluding dummy values
+                'percentile_84': float(high),  # Percentile excluding dummy values
+                'center': float(center),  # Center for standardization (excluding dummy values)
+                'scale': float(scale),  # Scale for standardization (excluding dummy values)
                 'has_nan': np.any(np.isnan(ak.to_numpy(ak.flatten(table[var_name], axis=None)))),
                 'has_inf': np.any(np.isinf(ak.to_numpy(ak.flatten(table[var_name], axis=None)))),
             }
@@ -206,7 +255,10 @@ class StandardizationComputer:
             stats = self.compute_statistics(table, var_name)
             if stats:
                 stats_dict[var_name] = stats
-                print(f"  {var_name:30s} center={stats['center']:10.6f} scale={stats['scale']:10.6f}")
+                dummy_info = ""
+                if stats.get('dummy_count', 0) > 0:
+                    dummy_info = f" (excluded {stats['dummy_count']} dummy values)"
+                print(f"  {var_name:30s} center={stats['center']:10.6f} scale={stats['scale']:10.6f}{dummy_info}")
             else:
                 print(f"  {var_name:30s} FAILED to compute statistics")
         
@@ -318,6 +370,10 @@ class StandardizationComputer:
             f.write("-"*60 + "\n")
             for var_name, stats in sorted(stats_dict_pnet.items()):
                 f.write(f"\n{var_name}:\n")
+                if stats.get('dummy_count', 0) > 0:
+                    f.write(f"  Dummy values (-9): {stats['dummy_count']} out of {stats['count']} total\n")
+                    f.write(f"  Non-dummy count: {stats['count_non_dummy']}\n")
+                    f.write(f"  NOTE: Statistics computed excluding dummy values\n")
                 f.write(f"  Center (median): {stats['center']:.6f}\n")
                 f.write(f"  Scale: {stats['scale']:.6f}\n")
                 f.write(f"  Mean: {stats['mean']:.6f}, Std: {stats['std']:.6f}\n")

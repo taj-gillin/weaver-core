@@ -179,15 +179,21 @@ class VariableVisualizer:
         ax1.grid(True, alpha=0.3)
         
         # Add statistics
-        if stats_dict and var_name in stats_dict:
-            stats = stats_dict[var_name]
-            stats_text = f"Mean: {stats['mean']:.4f}\n"
-            stats_text += f"Median: {stats['median']:.4f}\n"
-            stats_text += f"Std: {stats['std']:.4f}\n"
-            stats_text += f"Min: {stats['min']:.4f}\n"
-            stats_text += f"Max: {stats['max']:.4f}"
-            ax1.text(0.02, 0.98, stats_text, transform=ax1.transAxes,
-                verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+        # Compute statistics from data (use stats_dict values if available)
+        stats = stats_dict.get(var_name, {}) if stats_dict else {}
+        mean = stats.get('mean', np.mean(data))
+        median = stats.get('median', np.median(data))
+        std = stats.get('std', np.std(data))
+        min_val = stats.get('min', np.min(data))
+        max_val = stats.get('max', np.max(data))
+        
+        stats_text = f"Mean: {mean:.4f}\n"
+        stats_text += f"Median: {median:.4f}\n"
+        stats_text += f"Std: {std:.4f}\n"
+        stats_text += f"Min: {min_val:.4f}\n"
+        stats_text += f"Max: {max_val:.4f}"
+        ax1.text(0.02, 0.98, stats_text, transform=ax1.transAxes,
+            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
         
         # Plot 2: Log scale (if appropriate)
         ax2 = axes[1]
@@ -266,17 +272,40 @@ class VariableVisualizer:
         else:
             plt.show()
     
-    def plot_statistics_summary(self, stats_dict, save_path=None):
+    def plot_statistics_summary(self, stats_dict, table=None, save_path=None):
         """Plot summary statistics for all variables."""
         if not stats_dict:
             return
         
         # Prepare data
         var_names = list(stats_dict.keys())
-        centers = [stats_dict[v]['center'] for v in var_names]
-        scales = [stats_dict[v]['scale'] for v in var_names]
-        means = [stats_dict[v]['mean'] for v in var_names]
-        stds = [stats_dict[v]['std'] for v in var_names]
+        centers = [stats_dict[v].get('center', 0) for v in var_names]
+        scales = [stats_dict[v].get('scale', 1) for v in var_names]
+        
+        # Compute means and stds from data if not in stats_dict
+        means = []
+        stds = []
+        for v in var_names:
+            # Get data once if needed
+            data = None
+            if table is not None and ('mean' not in stats_dict[v] or 'std' not in stats_dict[v]):
+                data = self.get_variable_data(table, v)
+            
+            # Compute mean
+            if 'mean' in stats_dict[v]:
+                means.append(stats_dict[v]['mean'])
+            elif data is not None and len(data) > 0:
+                means.append(np.mean(data))
+            else:
+                means.append(stats_dict[v].get('center', 0))  # Use center as fallback
+            
+            # Compute std
+            if 'std' in stats_dict[v]:
+                stds.append(stats_dict[v]['std'])
+            elif data is not None and len(data) > 0:
+                stds.append(np.std(data))
+            else:
+                stds.append(1.0)  # Default scale
         
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
         
@@ -403,7 +432,7 @@ class VariableVisualizer:
         # Generate summary plot
         if stats_dict:
             summary_path = os.path.join(self.output_dir, 'summary', 'statistics_summary.png')
-            self.plot_statistics_summary(stats_dict, summary_path)
+            self.plot_statistics_summary(stats_dict, table=table, save_path=summary_path)
             print(f"\nSummary plot saved to: {summary_path}")
         
         print(f"\n{'='*60}")
@@ -420,8 +449,9 @@ def main():
     import argparse
     
     # Get weavercoredir (needed for paths)
+    # Script is in exploration_temp/, so go up one level to get weaver-core root
     thisdir = os.path.abspath(os.path.dirname(__file__))
-    weavercoredir = os.path.abspath(os.path.join(thisdir, '../..'))
+    weavercoredir = os.path.abspath(os.path.join(thisdir, '..'))
     
     parser = argparse.ArgumentParser(
         description='Generate visualizations for all variables'
