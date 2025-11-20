@@ -296,31 +296,36 @@ class StandardizationComputer:
                     if var_name in stats_dict:
                         stats = stats_dict[var_name]
                         
-                        # Ensure list has enough elements
-                        while len(var_entry) < 6:
-                            if len(var_entry) == 1:
-                                var_entry.append(None)  # center
-                            elif len(var_entry) == 2:
-                                var_entry.append(1)     # scale
-                            elif len(var_entry) == 3:
-                                var_entry.append(-999999)  # clip_min (very large = no clipping)
-                            elif len(var_entry) == 4:
-                                var_entry.append(999999)   # clip_max (very large = no clipping)
-                            elif len(var_entry) == 5:
-                                var_entry.append(0)     # pad_value
+                        # Define binary/categorical variables that should NOT be standardized
+                        binary_categorical_vars = {
+                            'pfcand_isChargedHad', 'pfcand_isNeutralHad', 'pfcand_isGamma',
+                            'pfcand_isEl', 'pfcand_isMu', 'pfcand_mask', 'pfcand_charge'
+                        }
                         
-                        # Update with standardization parameters
-                        var_entry[1] = stats['center']  # subtract_by (center)
-                        var_entry[2] = stats['scale']   # multiply_by (scale)
+                        # Check if this variable should be excluded from standardization
+                        is_binary_categorical = var_name in binary_categorical_vars
                         
-                        # Disable clipping by using very large values - let robust standardization handle outliers
-                        # Note: np.clip requires actual numbers, so we use very large values to effectively disable clipping
-                        var_entry[3] = -999999  # clip_min (effectively no clipping)
-                        var_entry[4] = 999999    # clip_max (effectively no clipping)
-                        
-                        # Keep pad_value if it exists, otherwise default to 0
-                        if var_entry[5] is None:
-                            var_entry[5] = 0   # pad_value
+                        if is_binary_categorical:
+                            # Skip standardization - just keep variable name
+                            while len(var_entry) > 1:
+                                var_entry.pop()
+                        else:
+                            # Apply standardization
+                            # Only output [name, center, scale] - let config defaults handle clip/pad
+                            # Truncate to 3 elements if longer
+                            while len(var_entry) > 3:
+                                var_entry.pop()
+                            
+                            # Ensure we have exactly 3 elements
+                            while len(var_entry) < 3:
+                                if len(var_entry) == 1:
+                                    var_entry.append(None)  # center
+                                elif len(var_entry) == 2:
+                                    var_entry.append(1)     # scale
+                            
+                            # Update with standardization parameters
+                            var_entry[1] = stats['center']  # subtract_by (center)
+                            var_entry[2] = stats['scale']   # multiply_by (scale)
         
         # Ensure output directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
