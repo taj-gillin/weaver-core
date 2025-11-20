@@ -1,0 +1,243 @@
+============================================================
+Standardization Parameters Report
+============================================================
+
+Data source: samples file /oscar/home/tgillin/files/weaver-core/weaver/configs/samplelists/oscar/samples_training.yaml
+Training files: 70
+Events used: 194548
+Sample fraction: 10.0%
+
+Standardization Parameters:
+------------------------------------------------------------
+
+pfcand_btagJetDistSig:
+  Dummy values (-9): 1750118 out of 3534355 total
+  Non-dummy count: 1784237
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.000926
+  Scale: 0.573887
+  Mean: -0.024120, Std: 13.562464
+  Range: [-1540.300293, 1026.329224]
+  16th percentile: -1.740767
+  84th percentile: 1.743430
+
+pfcand_btagJetDistVal:
+  Dummy values (-9): 1750119 out of 3534355 total
+  Non-dummy count: 1784236
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.000028
+  Scale: 17.293118
+  Mean: -0.009586, Std: 5.131243
+  Range: [-276.769440, 266.956635]
+  16th percentile: -0.057798
+  84th percentile: 0.057750
+
+pfcand_btagSip2dSig:
+  Dummy values (-9): 1750121 out of 3534355 total
+  Non-dummy count: 1784234
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.232643
+  Scale: 0.280002
+  Mean: 2.336076, Std: 22.177774
+  Range: [-1440.710571, 1840.293457]
+  16th percentile: -2.092421
+  84th percentile: 3.804050
+
+pfcand_btagSip2dVal:
+  Dummy values (-9): 1750119 out of 3534355 total
+  Non-dummy count: 1784236
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.002751
+  Scale: 13.317985
+  Mean: 0.119430, Std: 2.026551
+  Range: [-69.567230, 112.799545]
+  16th percentile: -0.033964
+  84th percentile: 0.077838
+
+pfcand_btagSip3dSig:
+  Dummy values (-9): 1750120 out of 3534355 total
+  Non-dummy count: 1784235
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.247855
+  Scale: 0.254938
+  Mean: 1.151162, Std: 22.752882
+  Range: [-2234.578613, 2256.058838]
+  16th percentile: -3.254711
+  84th percentile: 4.170372
+
+pfcand_btagSip3dVal:
+  Dummy values (-9): 1750119 out of 3534355 total
+  Non-dummy count: 1784236
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.006151
+  Scale: 5.800664
+  Mean: 0.010119, Std: 8.182907
+  Range: [-342.154358, 291.502625]
+  16th percentile: -0.118658
+  84th percentile: 0.178545
+
+pfcand_charge:
+  Center (median): 0.000000
+  Scale: 1.000000
+  Mean: 0.004712, Std: 0.710496
+  Range: [-1.000000, 1.000000]
+  16th percentile: -1.000000
+  84th percentile: 1.000000
+
+pfcand_drrel:
+  Center (median): 1.667746
+  Scale: 1.001039
+  Mean: 1.681457, Std: 0.843886
+  Range: [0.002573, 3.583337]
+  16th percentile: 0.720548
+  84th percentile: 2.666708
+
+pfcand_dxy:
+  Dummy values (-9): 1750119 out of 3534355 total
+  Non-dummy count: 1784236
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.000053
+  Scale: 19.495525
+  Mean: -0.005578, Std: 2.030060
+  Range: [-112.799545, 96.244804]
+  16th percentile: -0.051241
+  84th percentile: 0.050627
+
+pfcand_dz:
+  Dummy values (-9): 1750118 out of 3534355 total
+  Non-dummy count: 1784237
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.000001
+  Scale: 10.923909
+  Mean: -0.007554, Std: 7.927094
+  Range: [-342.125824, 320.293701]
+  16th percentile: -0.091542
+  84th percentile: 0.091011
+
+pfcand_e:
+  Center (median): 1.183100
+  Scale: 0.375460
+  Mean: 2.343224, Std: 3.296699
+  Range: [0.059607, 78.011345]
+  16th percentile: 0.490307
+  84th percentile: 3.846502
+
+pfcand_e_log:
+  Center (median): 0.168138
+  Scale: 0.848158
+  Mean: 0.301541, Std: 0.983136
+  Range: [-2.819982, 4.356854]
+  16th percentile: -0.712723
+  84th percentile: 1.347164
+
+pfcand_erel_log:
+  Center (median): -1.554279
+  Scale: 1.956282
+  Mean: -1.499461, Std: 0.430241
+  Range: [-2.893920, 0.000000]
+  16th percentile: -1.941350
+  84th percentile: -1.043105
+
+pfcand_isChargedHad:
+  Center (median): 0.000000
+  Scale: 1.000000
+  Mean: 0.455854, Std: 0.498047
+  Range: [0.000000, 1.000000]
+  16th percentile: 0.000000
+  84th percentile: 1.000000
+
+pfcand_isEl:
+  Center (median): 0.000000
+  Scale: 1.000000
+  Mean: 0.015156, Std: 0.122174
+  Range: [0.000000, 1.000000]
+  16th percentile: 0.000000
+  84th percentile: 0.000000
+
+pfcand_isGamma:
+  Center (median): 0.000000
+  Scale: 1.000000
+  Mean: 0.308885, Std: 0.462033
+  Range: [0.000000, 1.000000]
+  16th percentile: 0.000000
+  84th percentile: 1.000000
+
+pfcand_isMu:
+  Center (median): 0.000000
+  Scale: 1.000000
+  Mean: 0.005374, Std: 0.073111
+  Range: [0.000000, 1.000000]
+  16th percentile: 0.000000
+  84th percentile: 0.000000
+
+pfcand_isNeutralHad:
+  Center (median): 0.000000
+  Scale: 1.000000
+  Mean: 0.174011, Std: 0.379119
+  Range: [0.000000, 1.000000]
+  16th percentile: 0.000000
+  84th percentile: 1.000000
+
+pfcand_mask:
+  Center (median): 1.000000
+  Scale: 1.000000
+  Mean: 1.000000, Std: 0.000000
+  Range: [1.000000, 1.000000]
+  16th percentile: 1.000000
+  84th percentile: 1.000000
+
+pfcand_phirel:
+  Center (median): 0.003711
+  Scale: 0.473361
+  Mean: 0.000413, Std: 1.804145
+  Range: [-3.141592, 3.141593]
+  16th percentile: -2.108842
+  84th percentile: 2.107370
+
+pfcand_pt_log:
+  Center (median): -0.133056
+  Scale: 0.827791
+  Mean: -0.031376, Std: 1.066809
+  Range: [-4.922609, 4.246387]
+  16th percentile: -1.057418
+  84th percentile: 1.074978
+
+pfcand_ptrel_log:
+  Center (median): -1.498228
+  Scale: 1.958573
+  Mean: -1.462626, Std: 0.454764
+  Range: [-3.705369, 1.202730]
+  16th percentile: -1.922490
+  84th percentile: -0.987653
+
+pfcand_px:
+  Center (median): 0.001000
+  Scale: 1.097695
+  Mean: 0.000767, Std: 2.267242
+  Range: [-45.078999, 69.555000]
+  16th percentile: -0.908000
+  84th percentile: 0.912000
+
+pfcand_py:
+  Center (median): 0.001000
+  Scale: 1.098901
+  Mean: 0.001481, Std: 2.262216
+  Range: [-61.569000, 58.417000]
+  16th percentile: -0.909000
+  84th percentile: 0.910000
+
+pfcand_pz:
+  Center (median): -0.001000
+  Scale: 0.990099
+  Mean: -0.000555, Std: 2.467591
+  Range: [-46.877998, 63.977001]
+  16th percentile: -1.011000
+  84th percentile: 1.009000
+
+pfcand_thetarel:
+  Center (median): 0.264867
+  Scale: 1.968070
+  Mean: 0.394597, Std: 0.358877
+  Range: [0.000000, 1.989006]
+  16th percentile: 0.083989
+  84th percentile: 0.772979

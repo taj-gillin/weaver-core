@@ -36,7 +36,8 @@ class StandardizationComputer:
     DUMMY_VALUE = -9.0
     
     def __init__(self, data_dir, config_template_pnet, config_template_part, 
-                 sample_fraction=0.1, max_events_per_file=None):
+                 sample_fraction=0.1, max_events_per_file=None, training_files=None,
+                 data_source_desc=None):
         """
         Args:
             data_dir: Directory containing output_*_train.root files
@@ -46,19 +47,26 @@ class StandardizationComputer:
             max_events_per_file: Maximum events per file (None = use all)
         """
         self.data_dir = data_dir
+        self.data_source_desc = data_source_desc or data_dir or "custom training file list"
         self.config_template_pnet = config_template_pnet
         self.config_template_part = config_template_part
         self.sample_fraction = sample_fraction
         self.max_events_per_file = max_events_per_file
         
         # Find all training files
-        pattern = os.path.join(data_dir, 'output_*_train.root')
-        self.training_files = sorted(glob.glob(pattern))
+        if training_files is not None:
+            self.training_files = sorted(set(training_files))
+            if len(self.training_files) == 0:
+                raise ValueError("No training files found using the provided samples list")
+        else:
+            if data_dir is None:
+                raise ValueError("Either data_dir or training_files must be provided")
+            pattern = os.path.join(data_dir, 'output_*_train.root')
+            self.training_files = sorted(glob.glob(pattern))
+            if len(self.training_files) == 0:
+                raise ValueError(f"No training files found matching pattern: {pattern}")
         
-        if len(self.training_files) == 0:
-            raise ValueError(f"No training files found matching pattern: {pattern}")
-        
-        print(f"Found {len(self.training_files)} training files")
+        print(f"Found {len(self.training_files)} training files from {self.data_source_desc}")
     
     def load_data_sample(self, data_config, file_list=None):
         """Load a sample of data from files."""
@@ -361,7 +369,7 @@ class StandardizationComputer:
             f.write("="*60 + "\n")
             f.write("Standardization Parameters Report\n")
             f.write("="*60 + "\n\n")
-            f.write(f"Data source: {self.data_dir}\n")
+            f.write(f"Data source: {self.data_source_desc}\n")
             f.write(f"Training files: {len(self.training_files)}\n")
             f.write(f"Events used: {len(table)}\n")
             f.write(f"Sample fraction: {self.sample_fraction*100:.1f}%\n\n")
@@ -388,6 +396,49 @@ class StandardizationComputer:
         return output_pnet, output_part, stats_dict_pnet
 
 
+def load_training_files_from_yaml(samples_file):
+    """Load and expand training file patterns from a YAML list."""
+    with open(samples_file, 'r') as f:
+        sample_entries = yaml.safe_load(f)
+    
+    if not sample_entries:
+        raise ValueError(f"Samples file {samples_file} is empty")
+    
+    if not isinstance(sample_entries, list):
+        raise ValueError(f"Samples file {samples_file} must contain a list of file paths or patterns")
+    
+    resolved_files = []
+    samples_dir = os.path.dirname(os.path.abspath(samples_file))
+    
+    for entry in sample_entries:
+        if isinstance(entry, str):
+            pattern = entry
+        elif isinstance(entry, dict):
+            # Support simple dict entries like {path: "..."} or {file: "..."}
+            pattern = entry.get('path') or entry.get('file')
+            if pattern is None:
+                continue
+        else:
+            continue
+        
+        pattern = os.path.expandvars(os.path.expanduser(pattern))
+        if not os.path.isabs(pattern):
+            pattern = os.path.abspath(os.path.join(samples_dir, pattern))
+        
+        matched = glob.glob(pattern)
+        if matched:
+            resolved_files.extend(matched)
+        else:
+            print(f"WARNING: Pattern {pattern} matched no files")
+    
+    resolved_files = sorted(set(resolved_files))
+    
+    if not resolved_files:
+        raise ValueError(f"No files found using samples file {samples_file}")
+    
+    return resolved_files
+
+
 def main():
     """Main function."""
     import argparse
@@ -398,6 +449,8 @@ def main():
     parser.add_argument('--data-dir', type=str, 
                        default='/HEP/data/share/aleph/aleph-data/ntuples/mc',
                        help='Directory containing output_*_train.root files')
+    parser.add_argument('--samples-file', type=str, default=None,
+                       help='YAML file listing training files or glob patterns (overrides --data-dir)')
     parser.add_argument('--config-pnet', type=str,
                        default='configs/data_config_pnet.yaml',
                        help='Path to ParticleNet config template (relative to weaver dir)')
@@ -440,6 +493,31 @@ def main():
             # Otherwise, assume it's relative to weaver_dir
             output_dir = os.path.abspath(os.path.join(weaver_dir, args.output_dir))
     
+    # Resolve samples file if provided
+    samples_file = None
+    training_files = None
+    data_source_desc = None
+    
+    if args.samples_file:
+        if os.path.isabs(args.samples_file):
+            samples_file = args.samples_file
+        elif args.samples_file.startswith('weaver/'):
+            samples_file = os.path.abspath(os.path.join(weavercoredir, args.samples_file))
+        else:
+            samples_file = os.path.abspath(os.path.join(weaver_dir, args.samples_file))
+        
+        if not os.path.exists(samples_file):
+            raise FileNotFoundError(f"Samples file not found: {samples_file}")
+        
+        training_files = load_training_files_from_yaml(samples_file)
+        data_source_desc = f"samples file {samples_file}"
+    
+    data_dir = args.data_dir
+    if data_dir:
+        data_dir = os.path.abspath(data_dir)
+    if training_files is None:
+        data_source_desc = data_dir
+    
     # Change to weaver directory (where DataConfig expects to be)
     os.chdir(weaver_dir)
     
@@ -448,11 +526,13 @@ def main():
     
     # Create computer
     computer = StandardizationComputer(
-        data_dir=args.data_dir,
+        data_dir=None if training_files is not None else data_dir,
         config_template_pnet=config_pnet,
         config_template_part=config_part,
         sample_fraction=args.sample_fraction,
-        max_events_per_file=max_events
+        max_events_per_file=max_events,
+        training_files=training_files,
+        data_source_desc=data_source_desc
     )
     
     # Generate configs

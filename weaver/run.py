@@ -15,18 +15,19 @@ if __name__=='__main__':
 
     # common settings
     weaverdir = os.path.join(weavercoredir, 'weaver')
-    # data config
-    data_config = os.path.abspath('configs/data_config_pnet.yaml')
+    # data config - using standardized config
+    data_config = os.path.join(weaverdir, 'configs/standardized_configs/data_config_pnet_standardized.yaml')
+    #data_config = os.path.abspath('configs/data_config_pnet.yaml')
     #data_config = os.path.abspath('configs/data_config_part.yaml')
     # model config
-    model_config = os.path.abspath('configs/model_config_pnet.py')
-    #model_config = os.path.abspath('configs/model_config_part.py')
+    model_config = os.path.join(weaverdir, 'configs/model_config_pnet.py')
+    #model_config = os.path.join(weaverdir, 'configs/model_config_part.py')
     # sample list for training data
-    sample_config_train = os.path.abspath('configs/samplelists/oscar/samples_training.yaml')
+    sample_config_train = os.path.join(weaverdir, 'configs/samplelists/oscar/samples_training.yaml')
     # sample list for testing data
-    sample_config_test = os.path.abspath('configs/samplelists/oscar/samples_testing.yaml')
-    # output dir
-    outputdir = os.path.join(thisdir, 'output_test')
+    sample_config_test = os.path.join(weaverdir, 'configs/samplelists/oscar/samples_testing.yaml')
+    # output dir - using standardized in name
+    outputdir = os.path.join(thisdir, 'output_pnet_standardized')
     # network settings
     num_epochs = 50
     steps_per_epoch = 300

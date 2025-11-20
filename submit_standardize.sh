@@ -13,5 +13,9 @@ cd /users/tgillin/files/weaver-core
 source /users/tgillin/miniconda3/etc/profile.d/conda.sh
 conda activate weaver
 
-python weaver/configs/compute_standardization.py --sample-fraction 0.1 --max-events-per-file 100000 \
---output-dir weaver/configs/standardized_configs
+python weaver/configs/compute_standardization.py \
+--samples-file weaver/configs/samplelists/oscar/samples_training.yaml \
+--config-pnet configs/data_configs/data_config_pnet.yaml \
+--config-part configs/data_configs/data_config_part.yaml \
+--sample-fraction 0.1 --max-events-per-file 100000 \
+--output-dir weaver/configs/data_configs

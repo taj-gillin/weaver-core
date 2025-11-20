@@ -11,9 +11,16 @@
 # Change to the weaver-core directory
 cd /users/tgillin/files/weaver-core/weaver
 
+# Check if input file argument is provided
+if [ -z "$1" ]; then
+    echo "Error: Input file path is required"
+    echo "Usage: $0 <input_file_path>"
+    exit 1
+fi
+
 # Activate conda environment
 source /users/tgillin/miniconda3/etc/profile.d/conda.sh
 conda activate weaver
 
-python evaluation/evaluate.py -i /users/tgillin/files/weaver-core/weaver/output_test/output.root
+python evaluation/evaluate.py -i "$1"
 
