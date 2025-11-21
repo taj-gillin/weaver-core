@@ -1,0 +1,42 @@
+# Training configuration file that references other configs
+# This config file specifies all the configs and settings needed for training
+
+# Paths to config files (relative to this config file or absolute paths)
+data_config: data_configs/data_config_part_standardized.yaml
+model_config: model_config_part.py
+sample_train: samplelists/oscar/samples_training.yaml
+sample_test: samplelists/oscar/samples_testing.yaml
+
+# Training hyperparameters
+num_epochs: 50
+steps_per_epoch: 300
+batch_size: 512
+
+# Output settings
+output_dir: null  # null = auto-generate from data_config filename
+model_prefix_name: network
+test_output: output.root
+
+# Data loading settings
+num_workers: 0
+copy_inputs: true
+
+# Compute settings
+gpus: '0'  # GPU IDs (comma-separated) or empty string for CPU
+
+# Job submission settings
+runmode: slurm  # local, condor, or slurm
+
+# Slurm-specific settings
+slurm_memory: 16G
+slurm_time: 05:00:00
+conda_activate: source /users/tgillin/miniconda3/etc/profile.d/conda.sh
+conda_env: weaver
+
+# Condor-specific settings
+condor_conda_activate: source /eos/user/l/llambrec/miniforge3/bin/activate
+condor_jobflavour: workday
+
+# Advanced options
+keep_output_dir: false
+

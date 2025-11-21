@@ -78,17 +78,13 @@ inputs:
     pad_mode: wrap
     vars:
     - - pfcand_px
-      - 0.0010000000474974513
-      - 1.097694840316922
+      - null
     - - pfcand_py
-      - 0.0010000000474974513
-      - 1.0989011236040342
+      - null
     - - pfcand_pz
-      - -0.0010000000474974513
-      - 0.9900989734871096
+      - null
     - - pfcand_e
-      - 1.1831002235412598
-      - 0.3754597244505833
+      - null
   pf_mask:
     length: 128
     pad_mode: constant

@@ -289,7 +289,22 @@ class StandardizationComputer:
         config['preprocess']['method'] = 'manual'
         
         # Update input variables with standardization parameters
-        for input_group in config['inputs'].values():
+        for input_group_name, input_group in config['inputs'].items():
+            # Skip pf_vectors - these are 4-vector components (px, py, pz, e) used in physics 
+            # calculations and must remain in raw form (not standardized)
+            # Note: pf_points can be standardized since ParticleTransformer doesn't use it
+            if input_group_name == 'pf_vectors':
+                print(f"  Skipping standardization for '{input_group_name}' (4-vector components for physics calculations)")
+                # Ensure all variables in pf_vectors use null (no standardization)
+                for var_entry in input_group['vars']:
+                    if isinstance(var_entry, list):
+                        # Keep only variable name, set rest to null
+                        var_name = var_entry[0]
+                        while len(var_entry) > 1:
+                            var_entry.pop()
+                        var_entry.append(None)  # Add null for center
+                continue
+            
             for var_entry in input_group['vars']:
                 if isinstance(var_entry, list):
                     var_name = var_entry[0]
