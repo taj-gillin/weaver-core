@@ -82,7 +82,8 @@ if __name__=='__main__':
             events,
             signal_categories,
             background_categories,
-            outputdir = outputdir)
+            outputdir = outputdir,
+            all_pairwise = True)
         plt.close()
 
         # make a ternary scatter plot
