@@ -12,6 +12,7 @@ from .data.tools import _pad, _repeat_pad, _clip, _stack
 from .data.fileio import _read_files
 from .data.config import DataConfig, _md5
 from .data.preprocess import _apply_selection, _build_new_variables, _build_weights, AutoStandardizer, WeightMaker
+from .data.augmentation import Augmenter
 
 
 def _collate_awkward_array_fn(batch, *, collate_fn_map=None):
@@ -103,6 +104,12 @@ def _preprocess(table, data_config, options):
     # shuffle
     if options['shuffle']:
         np.random.shuffle(indices)
+
+    # augmentation
+    if options['training'] and options.get('augment', False):
+        augmenter = Augmenter(data_config, options)
+        table = augmenter.augment(table)
+
     # perform input variable standardization, clipping, padding and stacking
     table = _finalize_inputs(table, data_config)
     return table, indices

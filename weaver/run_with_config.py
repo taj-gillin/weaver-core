@@ -197,6 +197,7 @@ def main():
     # Get slurm/condor specific settings
     slurm_memory = config.get('slurm_memory', '16G')
     slurm_time = config.get('slurm_time', '05:00:00')
+    slurm_cpus = config.get('slurm_cpus', 1)
     conda_activate = config.get('conda_activate', 'source /users/tgillin/miniconda3/etc/profile.d/conda.sh')
     conda_env = config.get('conda_env', 'weaver')
     condor_conda_activate = config.get('condor_conda_activate', 'source /eos/user/l/llambrec/miniforge3/bin/activate')
@@ -241,6 +242,7 @@ def main():
             'env_cmds': env_cmds,
             'memory': slurm_memory,
             'time': slurm_time,
+            'cpus_per_task': slurm_cpus,
             'output': log_output,
             'error': log_error
         }
