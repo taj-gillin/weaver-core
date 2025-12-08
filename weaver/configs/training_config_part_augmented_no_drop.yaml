@@ -13,7 +13,7 @@ steps_per_epoch: 300
 batch_size: 512
 
 # Output settings
-output_dir: output_part_augmented  # Explicit output directory name
+output_dir: /oscar/data/lgouskos/training_runs/output_part_augmented_no_drop
 model_prefix_name: network
 test_output: output.root
 

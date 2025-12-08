@@ -102,78 +102,128 @@ def plot_roc_multi(events,
     # initialize figure
     fig, ax = plt.subplots()
     
-    # determine pairs to plot
+    # determine which pairs to plot
     if all_pairwise:
-        # plot all pairwise combinations
-        category_list = list(all_categories.items())
-        pairs = []
-        for i in range(len(category_list)):
-            for j in range(i+1, len(category_list)):
-                pairs.append((category_list[i], category_list[j]))
-        cmap = plt.get_cmap('cool', len(pairs))
+        # plot all pairwise combinations (e.g., b vs c, b vs udsg, c vs udsg)
+        nlines = int(len(all_categories)*(len(all_categories)-1)/2)
+        categories_to_compare = all_categories
     else:
-        # plot only signal vs background pairs
-        pairs = []
-        for sig_item in signal_categories.items():
-            for bkg_item in background_categories.items():
-                pairs.append((sig_item, bkg_item))
-        cmap = plt.get_cmap('cool', len(pairs))
+        # plot only signal vs background combinations
+        nlines = len(signal_categories)*len(background_categories)
+        categories_to_compare = None  # will use nested loops below
     
+    cmap = plt.get_cmap('cool', nlines)
     cidx = 0
 
     # loop over pairs of categories
-    for pair in pairs:
-        (cat1_name, cat1_settings), (cat2_name, cat2_settings) = pair
+    if all_pairwise:
+        # loop over all pairs
+        for sidx, (signal_category_name, signal_category_settings) in enumerate(all_categories.items()):
+            for bidx, (background_category_name, background_category_settings) in enumerate(all_categories.items()):
+                if bidx <= sidx: continue
 
-        # get scores for the two categories
-        cat1_score_branch = cat1_settings['score_branch']
-        cat2_score_branch = cat2_settings['score_branch']
-        scores = np.divide(events[cat1_score_branch], events[cat1_score_branch] + events[cat2_score_branch])
-        scores_cat1 = scores[masks[cat1_name]]
-        scores_cat2 = scores[masks[cat2_name]]
-        weights_cat1 = np.ones(len(scores_cat1))
-        weights_cat2 = np.ones(len(scores_cat2))
-        
-        # safety for no passing events
-        if len(scores_cat1)==0 or len(scores_cat2)==0:
-            continue
+                # get scores for signal and background
+                sig_score_branch = signal_category_settings['score_branch']
+                bkg_score_branch = background_category_settings['score_branch']
+                scores = np.divide(events[sig_score_branch], events[sig_score_branch] + events[bkg_score_branch])
+                scores_sig = scores[masks[signal_category_name]]
+                scores_bkg = scores[masks[background_category_name]]
+                weights_sig = np.ones(len(scores_sig))
+                weights_bkg = np.ones(len(scores_bkg))
+                
+                # safety for no passing events
+                if len(scores_sig)==0 or len(scores_bkg)==0:
+                    continue
 
-        # calculate AUC
-        this_scores = np.concatenate((scores_cat1, scores_cat2))
-        this_weights = np.concatenate((weights_cat1, weights_cat2))
-        this_labels = np.concatenate((np.ones(len(scores_cat1)), np.zeros(len(scores_cat2))))
-        auc = roc_auc_score(this_labels, this_scores, sample_weight=np.abs(this_weights))
+                # calculate AUC
+                this_scores = np.concatenate((scores_sig, scores_bkg))
+                this_weights = np.concatenate((weights_sig, weights_bkg))
+                this_labels = np.concatenate((np.ones(len(scores_sig)), np.zeros(len(scores_bkg))))
+                auc = roc_auc_score(this_labels, this_scores, sample_weight=np.abs(this_weights))
 
-        # calculate signal and background efficiency
-        thresholds = np.linspace(np.amin(this_scores), np.amax(this_scores), num=100)
-        efficiency_cat1 = np.zeros(len(thresholds))
-        efficiency_cat2 = np.zeros(len(thresholds))
-        for idx, threshold in enumerate(thresholds):
-            eff_1 = np.sum(weights_cat1[scores_cat1 > threshold])
-            efficiency_cat1[idx] = eff_1
-            eff_2 = np.sum(weights_cat2[scores_cat2 > threshold])
-            efficiency_cat2[idx] = eff_2
-        efficiency_cat1 /= np.sum(weights_cat1)
-        efficiency_cat2 /= np.sum(weights_cat2)
+                # calculate signal and background efficiency
+                thresholds = np.linspace(np.amin(this_scores), np.amax(this_scores), num=100)
+                efficiency_sig = np.zeros(len(thresholds))
+                efficiency_bkg = np.zeros(len(thresholds))
+                for idx, threshold in enumerate(thresholds):
+                    eff_s = np.sum(weights_sig[scores_sig > threshold])
+                    efficiency_sig[idx] = eff_s
+                    eff_b = np.sum(weights_bkg[scores_bkg > threshold])
+                    efficiency_bkg[idx] = eff_b
+                efficiency_sig /= np.sum(weights_sig)
+                efficiency_bkg /= np.sum(weights_bkg)
 
-        # make a plot of the ROC curve
-        label = cat1_settings['label'] + ' vs. '
-        label += cat2_settings['label']
-        label += ' (AUC: {:.2f})'.format(auc)
-        ax.plot(efficiency_cat2, efficiency_cat1,
-          color=cmap(cidx), linewidth=3, label=label)
-        cidx += 1
+                # make a plot of the ROC curve
+                label = signal_category_settings['label'] + ' vs. '
+                label += background_category_settings['label']
+                label += ' (AUC: {:.2f})'.format(auc)
+                ax.plot(efficiency_bkg, efficiency_sig,
+                  color=cmap(cidx), linewidth=3, label=label)
+                cidx += 1
+    else:
+        # loop only over signal vs background pairs
+        for signal_category_name, signal_category_settings in signal_categories.items():
+            for background_category_name, background_category_settings in background_categories.items():
+
+                # get scores for signal and background
+                sig_score_branch = signal_category_settings['score_branch']
+                bkg_score_branch = background_category_settings['score_branch']
+                scores = np.divide(events[sig_score_branch], events[sig_score_branch] + events[bkg_score_branch])
+                scores_sig = scores[masks[signal_category_name]]
+                scores_bkg = scores[masks[background_category_name]]
+                weights_sig = np.ones(len(scores_sig))
+                weights_bkg = np.ones(len(scores_bkg))
+                
+                # safety for no passing events
+                if len(scores_sig)==0 or len(scores_bkg)==0:
+                    continue
+
+                # calculate AUC
+                this_scores = np.concatenate((scores_sig, scores_bkg))
+                this_weights = np.concatenate((weights_sig, weights_bkg))
+                this_labels = np.concatenate((np.ones(len(scores_sig)), np.zeros(len(scores_bkg))))
+                auc = roc_auc_score(this_labels, this_scores, sample_weight=np.abs(this_weights))
+
+                # calculate signal and background efficiency
+                thresholds = np.linspace(np.amin(this_scores), np.amax(this_scores), num=100)
+                efficiency_sig = np.zeros(len(thresholds))
+                efficiency_bkg = np.zeros(len(thresholds))
+                for idx, threshold in enumerate(thresholds):
+                    eff_s = np.sum(weights_sig[scores_sig > threshold])
+                    efficiency_sig[idx] = eff_s
+                    eff_b = np.sum(weights_bkg[scores_bkg > threshold])
+                    efficiency_bkg[idx] = eff_b
+                efficiency_sig /= np.sum(weights_sig)
+                efficiency_bkg /= np.sum(weights_bkg)
+
+                # make a plot of the ROC curve
+                label = signal_category_settings['label'] + ' vs. '
+                label += background_category_settings['label']
+                label += ' (AUC: {:.2f})'.format(auc)
+                ax.plot(efficiency_bkg, efficiency_sig,
+                  color=cmap(cidx), linewidth=3, label=label)
+                cidx += 1
     
     # other plot settings
     dummy_efficiency = np.linspace(0, 1, num=101)
     ax.plot(dummy_efficiency, dummy_efficiency,
-      color='darkblue', linewidth=3, linestyle='--', label='Baseline')
+      color='darkblue', linewidth=3, linestyle='--')
     ax.set_xlabel('Background pass-through', fontsize=12)
     ax.set_ylabel('Signal efficiency', fontsize=12)
     ax.grid(which='both')
     leg = ax.legend()
+
+    # save figure
     fig.tight_layout()
     figname = os.path.join(outputdir, 'roc.png')
+    fig.savefig(figname)
+    print(f'Saved figure {figname}.')
+
+    # same with log scale on x-axis
+    ax.set_xscale('log')
+    ax.set_xlim((1e-4, 1))
+    fig.tight_layout()
+    figname = os.path.join(outputdir, 'roc_log.png')
     fig.savefig(figname)
     print(f'Saved figure {figname}.')
     plt.close()
