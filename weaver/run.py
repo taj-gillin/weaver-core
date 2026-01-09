@@ -83,7 +83,7 @@ if __name__=='__main__':
     this_sample_config_train = os.path.join(outputdir, 'sample_config_train.yaml')
     os.system(f'cp {sample_config_train} {this_sample_config_train}')
     this_sample_config_test = os.path.join(outputdir, 'sample_config_test.yaml')
-    s.system(f'cp {sample_config_test} {this_sample_config_test}')
+    os.system(f'cp {sample_config_test} {this_sample_config_test}')
     
     # Copy the run config itself
     os.system(f'cp {config_file} {os.path.join(outputdir, "run_config.yaml")}')
@@ -120,6 +120,8 @@ if __name__=='__main__':
             cmd += ' --aug-reflection'
         if config.get('aug_dropout', 0) > 0:
             cmd += f' --aug-dropout {config["aug_dropout"]}'
+        if config.get('aug_reflection_prob', 0.5) != 0.5:
+            cmd += f' --aug-reflection-prob {config["aug_reflection_prob"]}'
             
     # compute options
     if gpus is not None and gpus != '': cmd += f' --gpus {gpus}'

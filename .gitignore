@@ -1,6 +1,8 @@
 # output folders
 **output_*
 logs/
+wandb/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

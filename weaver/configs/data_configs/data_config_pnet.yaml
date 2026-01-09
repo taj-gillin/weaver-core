@@ -5,6 +5,12 @@
 
 
 selection:
+  ( ( recojet_pt > 10. )
+  & ( np.abs(recojet_eta) < 0.9 ) )
+
+test_time_selection:
+  ( ( recojet_pt > 10. )
+  & ( np.abs(recojet_eta) < 0.9 ) )
 
 new_variables:
    pfcand_mask: ak.ones_like(pfcand_pt)
@@ -41,22 +47,30 @@ inputs:
          - [pfcand_ptrel_log, null]
          - [pfcand_erel_log, null]
          - [pfcand_drrel, null]
+         - [pfcand_thetarel, null]
+         - [pfcand_phirel, null]
          - [pfcand_charge, null]
          - [pfcand_dxy, null]
          - [pfcand_dz, null]
-         - [pfcand_btagSip2dVal, null]
-         - [pfcand_btagSip2dSig, null]
-         - [pfcand_btagSip3dVal, null]
-         - [pfcand_btagSip3dSig, null]
-         - [pfcand_btagJetDistVal, null]
-         - [pfcand_btagJetDistSig, null]
+         - [pfcand_Sip2dVal, null]
+         - [pfcand_Sip2dSig, null]
+         - [pfcand_Sip3dVal, null]
+         - [pfcand_Sip3dSig, null]
+         - [pfcand_JetDistVal, null]
+         - [pfcand_JetDistSig, null]
+         - [pfcand_linearSignedIP3D, null]
+         - [pfcand_linearSignedIP3DSig, null]
+         - [pfcand_transverseJetDistance, null]
+         - [pfcand_longitudinalJetDistance, null]
          - [pfcand_isChargedHad, null]
          - [pfcand_isNeutralHad, null]
          - [pfcand_isGamma, null]
          - [pfcand_isEl, null]
          - [pfcand_isMu, null]
-         - [pfcand_thetarel, null]
-         - [pfcand_phirel, null]
+         - [pfcand_trackChi2Normalized, null]
+         - [pfcand_nTrackHits_VDET, null]
+         - [pfcand_nTrackHits_ITC, null]
+         - [pfcand_nTrackHits_TPC, null]
    pf_mask:
       length: 128
       pad_mode: constant

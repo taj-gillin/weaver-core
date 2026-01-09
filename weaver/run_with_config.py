@@ -78,11 +78,34 @@ def main():
                         help='Override num_epochs from config')
     parser.add_argument('--batch-size', type=int, default=None,
                         help='Override batch_size from config')
+    parser.add_argument('--steps-per-epoch', type=int, default=None,
+                        help='Override steps_per_epoch from config')
+    parser.add_argument('--optimizer', type=str, default=None,
+                        choices=['adam', 'adamW', 'radam', 'ranger'],
+                        help='Override optimizer from config')
+    parser.add_argument('--start-lr', type=float, default=None,
+                        help='Override start learning rate from config')
+    parser.add_argument('--compile', action='store_true', default=False,
+                        help='Enable torch.compile for faster training')
+    parser.add_argument('--compile-mode', type=str, default=None,
+                        choices=['default', 'reduce-overhead', 'max-autotune'],
+                        help='Override compile mode from config')
+    parser.add_argument('--profile-train', action='store_true', default=False,
+                        help='Enable real training-loop profiling for a short run')
+    parser.add_argument('--profile-steps', type=int, default=None,
+                        help='Number of training steps to capture when profiling')
+    parser.add_argument('--profile-dir', type=str, default=None,
+                        help='Directory for profiler traces (default: output directory)')
+    parser.add_argument('--profile-train-full', action='store_true', default=False,
+                        help='Profile the entire training run (all epochs/steps)')
+    parser.add_argument('--profile-train-full-active', type=int, default=None,
+                        help='Steps per profiler window for full-train profiling (overrides train default)')
     
     args = parser.parse_args()
     
     # Load config file
     config = load_config(args.config)
+    config_dir = os.path.dirname(os.path.abspath(args.config))
     
     # Override config with CLI arguments if provided
     if args.output_dir is not None:
@@ -93,6 +116,26 @@ def main():
         config['num_epochs'] = args.num_epochs
     if args.batch_size is not None:
         config['batch_size'] = args.batch_size
+    if args.steps_per_epoch is not None:
+        config['steps_per_epoch'] = args.steps_per_epoch
+    if args.optimizer is not None:
+        config['optimizer'] = args.optimizer
+    if args.start_lr is not None:
+        config['start_lr'] = args.start_lr
+    if args.compile:
+        config['compile'] = True
+    if args.compile_mode is not None:
+        config['compile_mode'] = args.compile_mode
+    if args.profile_train:
+        config['profile_train'] = True
+    if args.profile_steps is not None:
+        config['profile_steps'] = args.profile_steps
+    if args.profile_dir is not None:
+        config['profile_dir'] = args.profile_dir
+    if args.profile_train_full:
+        config['profile_train_full'] = True
+    if args.profile_train_full_active is not None:
+        config['profile_train_full_active'] = args.profile_train_full_active
     
     # Extract config paths
     data_config = config['data_config']
@@ -127,6 +170,15 @@ def main():
     copy_inputs = config.get('copy_inputs', True)
     gpus = config.get('gpus', '0')
     runmode = config.get('runmode', 'slurm')
+    profile_train = config.get('profile_train', False)
+    profile_steps = config.get('profile_steps', None)
+    profile_dir_config = config.get('profile_dir', None)
+    profile_train_full = config.get('profile_train_full', False)
+    profile_train_full_active = config.get('profile_train_full_active', None)
+    optimizer = config.get('optimizer', 'ranger')
+    start_lr = config.get('start_lr', 5e-3)
+    use_compile = config.get('compile', False)
+    compile_mode = config.get('compile_mode', 'default')
     
     # Make output directory (remove if it already exists, unless keep_output_dir)
     if os.path.exists(outputdir):
@@ -183,10 +235,63 @@ def main():
     cmd += f' --data-test {this_sample_config_test}'
     cmd += f' --predict-output {test_output_path}'
     cmd += f' --num-workers {num_workers}'
+    cmd += f' --optimizer {optimizer}'
+    cmd += f' --start-lr {start_lr}'
+    if use_compile:
+        cmd += ' --compile'
+        cmd += f' --compile-mode {compile_mode}'
     if copy_inputs:
         cmd += ' --copy-inputs'
+    
+    # Augmentation options
+    if config.get('augment', False):
+        cmd += ' --augment'
+        if config.get('aug_rotation', False):
+            cmd += ' --aug-rotation'
+        if config.get('aug_reflection', False):
+            cmd += ' --aug-reflection'
+        if config.get('aug_dropout', 0) > 0:
+            cmd += f' --aug-dropout {config["aug_dropout"]}'
+        if config.get('aug_reflection_prob', 0.5) != 0.5:
+            cmd += f' --aug-reflection-prob {config["aug_reflection_prob"]}'
+    
     if gpus and gpus != '""':
         cmd += f' --gpus {gpus}'
+    
+    # Profiling options
+    if profile_train:
+        cmd += ' --profile-train'
+        if profile_steps is not None:
+            cmd += f' --profile-steps {profile_steps}'
+        # Resolve profile dir; default to output directory
+        if profile_dir_config is not None:
+            if os.path.isabs(profile_dir_config):
+                profile_dir_resolved = profile_dir_config
+            else:
+                profile_dir_resolved = os.path.abspath(os.path.join(config_dir, profile_dir_config))
+        else:
+            profile_dir_resolved = outputdir
+        if profile_dir_resolved:
+            cmd += f' --profile-dir {profile_dir_resolved}'
+    if profile_train_full:
+        cmd += ' --profile-train-full'
+        if profile_train_full_active is not None:
+            cmd += f' --profile-train-full-active {profile_train_full_active}'
+    
+    # Add wandb flags if enabled
+    if config.get('use_wandb', False):
+        cmd += ' --use-wandb'
+        if config.get('wandb_project'):
+            cmd += f' --wandb-project {config["wandb_project"]}'
+        if config.get('wandb_entity'):
+            cmd += f' --wandb-entity {config["wandb_entity"]}'
+        if config.get('wandb_name'):
+            cmd += f' --wandb-name {config["wandb_name"]}'
+        if config.get('wandb_tags'):
+            tags = ','.join(config['wandb_tags']) if isinstance(config['wandb_tags'], list) else config['wandb_tags']
+            cmd += f' --wandb-tags {tags}'
+        if config.get('wandb_notes'):
+            cmd += f' --wandb-notes "{config["wandb_notes"]}"'
     
     print('\n' + '='*80)
     print('Generated weaver command:')

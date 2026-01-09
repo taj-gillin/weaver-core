@@ -30,8 +30,14 @@ class StandardizationComputer:
     
     # Variables that use -9 as dummy value for neutral particles (track-based variables)
     TRACK_VARIABLES_WITH_DUMMY = {
-        'btagJetDistSig', 'btagJetDistVal', 'btagSip2dSig', 'btagSip2dVal',
-        'btagSip3dSig', 'btagSip3dVal', 'dxy', 'dz'
+        # Renamed variables (btag prefix removed)
+        'JetDistSig', 'JetDistVal', 'Sip2dSig', 'Sip2dVal',
+        'Sip3dSig', 'Sip3dVal', 'dxy', 'dz',
+        # New track-based variables (alternative impact parameters)
+        'linearSignedIP3D', 'linearSignedIP3DSig',
+        'transverseJetDistance', 'longitudinalJetDistance',
+        # New track fit and hit count variables
+        'trackChi2Normalized', 'nTrackHits_VDET', 'nTrackHits_ITC', 'nTrackHits_TPC'
     }
     DUMMY_VALUE = -9.0
     

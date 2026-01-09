@@ -48,9 +48,59 @@ def _flatten_preds(model_output, label=None, mask=None, label_axis=1):
     return preds, label, mask
 
 
+def _compute_pairwise_roc_auc(labels, scores):
+    """
+    Compute ROC AUC for all pairwise class combinations.
+    
+    Args:
+        labels: 1D array of true class labels (integers 0, 1, 2, ...)
+        scores: 2D array of predicted probabilities, shape (n_samples, n_classes)
+    
+    Returns:
+        dict: Dictionary with keys like 'class_0_vs_class_1' and AUC values
+    """
+    from sklearn.metrics import roc_auc_score
+    
+    n_classes = scores.shape[1]
+    auc_values = {}
+    
+    # Loop over all pairs of classes
+    for i in range(n_classes):
+        for j in range(i + 1, n_classes):
+            # Get samples belonging to class i or class j
+            mask = (labels == i) | (labels == j)
+            if mask.sum() == 0:
+                continue
+            
+            # Get scores and labels for these two classes
+            binary_labels = labels[mask]
+            binary_scores_i = scores[mask, i]
+            binary_scores_j = scores[mask, j]
+            
+            # Compute discriminant score: P(i) / (P(i) + P(j))
+            discriminant = binary_scores_i / (binary_scores_i + binary_scores_j + 1e-10)
+            
+            # Convert to binary labels (1 for class i, 0 for class j)
+            binary_target = (binary_labels == i).astype(int)
+            
+            # Check if both classes are present
+            if len(np.unique(binary_target)) < 2:
+                continue
+            
+            try:
+                auc = roc_auc_score(binary_target, discriminant)
+                auc_values[f'class_{i}_vs_class_{j}'] = auc
+            except:
+                # Skip if AUC computation fails
+                pass
+    
+    return auc_values
+
+
+
 def train_classification(
         model, loss_func, opt, scheduler, train_loader, dev, epoch, steps_per_epoch=None, grad_scaler=None,
-        tb_helper=None):
+        tb_helper=None, wandb_helper=None, profiler=None):
     model.train()
 
     data_config = train_loader.dataset.config
@@ -98,6 +148,9 @@ def train_classification(
             total_loss += loss
             total_correct += correct
 
+            if profiler is not None:
+                profiler.step()
+
             tq.set_postfix({
                 'lr': '%.2e' % scheduler.get_last_lr()[0] if scheduler else opt.defaults['lr'],
                 'Loss': '%.5f' % loss,
@@ -133,6 +186,16 @@ def train_classification(
                 tb_helper.custom_fn(model_output=model_output, model=model, epoch=epoch, i_batch=-1, mode='train')
         # update the batch state
         tb_helper.batch_train_count += num_batches
+    
+    if wandb_helper:
+        metrics = {
+            'train/loss_epoch': total_loss / num_batches,
+            'train/accuracy': total_correct / count,
+            'train/learning_rate': scheduler.get_last_lr()[0] if scheduler else opt.param_groups[0]['lr'],
+            'epoch': epoch
+        }
+        _logger.info(f'Logging to wandb: {metrics}')
+        wandb_helper.log(metrics, step=epoch)
 
     if scheduler and not getattr(scheduler, '_update_per_step', False):
         scheduler.step()
@@ -140,7 +203,7 @@ def train_classification(
 
 def evaluate_classification(model, test_loader, dev, epoch, for_training=True, loss_func=None, steps_per_epoch=None,
                             eval_metrics=['roc_auc_score', 'roc_auc_score_matrix', 'confusion_matrix'],
-                            tb_helper=None):
+                            tb_helper=None, wandb_helper=None):
     model.eval()
 
     data_config = test_loader.dataset.config
@@ -227,6 +290,48 @@ def evaluate_classification(model, test_loader, dev, epoch, for_training=True, l
     metric_results = evaluate_metrics(labels[data_config.label_names[0]], scores, eval_metrics=eval_metrics)
     _logger.info('Evaluation metrics: \n%s', '\n'.join(
         ['    - %s: \n%s' % (k, str(v)) for k, v in metric_results.items()]))
+    
+    # Compute pairwise ROC AUC values for all class combinations (after concatenation)
+    pairwise_aucs = {}
+    if for_training:  # Only compute during validation, not test
+        try:
+            pairwise_aucs = _compute_pairwise_roc_auc(labels[data_config.label_names[0]], scores)
+            _logger.info('Pairwise ROC AUC:')
+            for pair_name, auc_val in pairwise_aucs.items():
+                _logger.info(f'  {pair_name}: {auc_val:.4f}')
+        except Exception as e:
+            _logger.warning(f'Failed to compute pairwise ROC AUC: {e}')
+    
+    if wandb_helper:
+        wandb_mode = 'val' if for_training else 'test'
+        metrics = {
+            f'{wandb_mode}/loss_epoch': total_loss / count,
+            f'{wandb_mode}/accuracy': total_correct / count,
+            'epoch': epoch
+        }
+        # Add pairwise AUCs to wandb metrics
+        if pairwise_aucs:
+            for pair_name, auc_val in pairwise_aucs.items():
+                metrics[f'{wandb_mode}/auc_{pair_name}'] = auc_val
+        wandb_helper.log(metrics, step=epoch)
+        
+        # Log ROC curves and score distributions during validation
+        if for_training and epoch is not None:
+            try:
+                # Get class names from data config if available
+                class_names = getattr(data_config, 'label_value', None)
+                if class_names is None:
+                    class_names = [f'class_{i}' for i in range(scores.shape[1])]
+                wandb_helper.log_roc_curves(
+                    labels=labels[data_config.label_names[0]],
+                    scores=scores,
+                    class_names=class_names,
+                    epoch=epoch,
+                    log_score_distributions=True
+                )
+                _logger.info(f'Logged ROC curves and score distributions to wandb for epoch {epoch}')
+            except Exception as e:
+                _logger.warning(f'Failed to log ROC curves to wandb: {e}')
 
     if for_training:
         return total_correct / count
@@ -299,7 +404,7 @@ def evaluate_onnx(model_path, test_loader, eval_metrics=['roc_auc_score', 'roc_a
 
 def train_regression(
         model, loss_func, opt, scheduler, train_loader, dev, epoch, steps_per_epoch=None, grad_scaler=None,
-        tb_helper=None):
+        tb_helper=None, wandb_helper=None, profiler=None):
     model.train()
 
     data_config = train_loader.dataset.config
@@ -343,6 +448,9 @@ def train_regression(
             sqr_err = e.square().sum().item()
             sum_sqr_err += sqr_err
 
+            if profiler is not None:
+                profiler.step()
+
             tq.set_postfix({
                 'lr': '%.2e' % scheduler.get_last_lr()[0] if scheduler else opt.defaults['lr'],
                 'Loss': '%.5f' % loss,
@@ -383,6 +491,15 @@ def train_regression(
                 tb_helper.custom_fn(model_output=model_output, model=model, epoch=epoch, i_batch=-1, mode='train')
         # update the batch state
         tb_helper.batch_train_count += num_batches
+    
+    if wandb_helper:
+        wandb_helper.log({
+            'train/loss_epoch': total_loss / num_batches,
+            'train/mse': sum_sqr_err / count,
+            'train/mae': sum_abs_err / count,
+            'train/learning_rate': scheduler.get_last_lr()[0] if scheduler else opt.param_groups[0]['lr'],
+            'epoch': epoch
+        }, step=epoch)
 
     if scheduler and not getattr(scheduler, '_update_per_step', False):
         scheduler.step()
@@ -391,7 +508,7 @@ def train_regression(
 def evaluate_regression(model, test_loader, dev, epoch, for_training=True, loss_func=None, steps_per_epoch=None,
                         eval_metrics=['mean_squared_error', 'mean_absolute_error', 'median_absolute_error',
                                       'mean_gamma_deviance'],
-                        tb_helper=None):
+                        tb_helper=None, wandb_helper=None):
     model.eval()
 
     data_config = test_loader.dataset.config
@@ -465,6 +582,15 @@ def evaluate_regression(model, test_loader, dev, epoch, for_training=True, loss_
         if tb_helper.custom_fn:
             with torch.no_grad():
                 tb_helper.custom_fn(model_output=model_output, model=model, epoch=epoch, i_batch=-1, mode=tb_mode)
+    
+    if wandb_helper:
+        wandb_mode = 'val' if for_training else 'test'
+        wandb_helper.log({
+            f'{wandb_mode}/loss_epoch': total_loss / count,
+            f'{wandb_mode}/mse': sum_sqr_err / count,
+            f'{wandb_mode}/mae': sum_abs_err / count,
+            'epoch': epoch
+        }, step=epoch)
 
     scores = np.concatenate(scores)
     labels = {k: _concat(v) for k, v in labels.items()}
@@ -505,3 +631,201 @@ class TensorboardHelper(object):
     def write_scalars(self, write_info):
         for tag, scalar_value, global_step in write_info:
             self.writer.add_scalar(tag, scalar_value, global_step)
+
+
+class WandbHelper(object):
+    """Helper class for Weights & Biases logging."""
+
+    def __init__(self, config, project='weaver-training', entity=None, name=None, tags=None, notes=None):
+        """
+        Initialize wandb logging.
+        
+        Args:
+            config: Training configuration dict to log
+            project: Wandb project name
+            entity: Wandb team/user
+            name: Run name (auto-generated if None)
+            tags: List of tags or comma-separated string
+            notes: Run notes
+        """
+        try:
+            import wandb
+        except ImportError:
+            raise ImportError('wandb is not installed. Please install it with: pip install wandb')
+        
+        # Convert comma-separated string to list if needed
+        if isinstance(tags, str):
+            tags = [t.strip() for t in tags.split(',') if t.strip()]
+        
+        # Initialize wandb run
+        wandb.init(
+            project=project,
+            entity=entity,
+            name=name,
+            tags=tags,
+            notes=notes,
+            config=config,
+            resume='allow'  # Allow resuming runs
+        )
+        
+        self.wandb = wandb
+        _logger.info(f'Initialized Wandb logging for project: {project}')
+        if entity:
+            _logger.info(f'  Entity: {entity}')
+        if tags:
+            _logger.info(f'  Tags: {tags}')
+
+    def __del__(self):
+        """Finish wandb run on cleanup."""
+        if hasattr(self, 'wandb'):
+            self.wandb.finish()
+
+    def log(self, metrics, step=None):
+        """
+        Log metrics to wandb.
+        
+        Args:
+            metrics: Dict of metric_name -> value
+            step: Step number (epoch or batch)
+        """
+        self.wandb.log(metrics, step=step)
+
+    def watch_model(self, model, log_freq=100):
+        """Watch model for gradient and parameter tracking."""
+        self.wandb.watch(model, log='all', log_freq=log_freq)
+
+    def log_figure(self, key, figure, step=None):
+        """
+        Log a matplotlib figure to wandb.
+        
+        Args:
+            key: Name for the figure in wandb
+            figure: matplotlib figure object
+            step: Step number (epoch or batch)
+        """
+        import matplotlib.pyplot as plt
+        self.wandb.log({key: self.wandb.Image(figure)}, step=step)
+        plt.close(figure)
+
+    def log_roc_curves(self, labels, scores, class_names, epoch, log_score_distributions=True):
+        """
+        Generate and log ROC curves and score distributions to wandb.
+        
+        Args:
+            labels: 1D array of true class labels (integers 0, 1, 2, ...)
+            scores: 2D array of predicted probabilities, shape (n_samples, n_classes)
+            class_names: List of class names corresponding to each class index
+            epoch: Current epoch number
+            log_score_distributions: Whether to also log score distributions
+        """
+        import matplotlib.pyplot as plt
+        from sklearn.metrics import roc_auc_score
+        
+        n_classes = len(class_names)
+        
+        # Create masks for each class
+        class_masks = {i: (labels == i) for i in range(n_classes)}
+        
+        # Generate ROC curves for all pairwise combinations
+        fig_roc, ax_roc = plt.subplots(figsize=(8, 6))
+        fig_roc_log, ax_roc_log = plt.subplots(figsize=(8, 6))
+        
+        # Count pairs for colormap
+        n_pairs = n_classes * (n_classes - 1) // 2
+        cmap = plt.get_cmap('cool', max(n_pairs, 1))
+        cidx = 0
+        
+        for i in range(n_classes):
+            for j in range(i + 1, n_classes):
+                # Get samples belonging to class i or class j
+                mask = class_masks[i] | class_masks[j]
+                if mask.sum() == 0:
+                    continue
+                
+                # Get scores for these two classes
+                scores_i = scores[mask, i]
+                scores_j = scores[mask, j]
+                binary_labels = labels[mask]
+                
+                # Compute discriminant score: P(i) / (P(i) + P(j))
+                discriminant = scores_i / (scores_i + scores_j + 1e-10)
+                
+                # Get discriminant for each class
+                disc_class_i = discriminant[binary_labels == i]
+                disc_class_j = discriminant[binary_labels == j]
+                
+                if len(disc_class_i) == 0 or len(disc_class_j) == 0:
+                    continue
+                
+                # Calculate efficiencies
+                thresholds = np.linspace(0, 1, 100)
+                eff_i = np.array([np.mean(disc_class_i > t) for t in thresholds])
+                eff_j = np.array([np.mean(disc_class_j > t) for t in thresholds])
+                
+                # Calculate AUC
+                binary_target = (binary_labels == i).astype(int)
+                try:
+                    auc = roc_auc_score(binary_target, discriminant)
+                except:
+                    auc = 0.5
+                
+                # Plot ROC curve
+                label = f'{class_names[i]} vs {class_names[j]} (AUC: {auc:.3f})'
+                ax_roc.plot(eff_j, eff_i, color=cmap(cidx), linewidth=2, label=label)
+                ax_roc_log.plot(eff_j, eff_i, color=cmap(cidx), linewidth=2, label=label)
+                cidx += 1
+        
+        # Diagonal reference line
+        ax_roc.plot([0, 1], [0, 1], 'k--', linewidth=1.5, alpha=0.7)
+        ax_roc_log.plot([0, 1], [0, 1], 'k--', linewidth=1.5, alpha=0.7)
+        
+        # Configure ROC plot
+        ax_roc.set_xlabel('Background pass-through', fontsize=12)
+        ax_roc.set_ylabel('Signal efficiency', fontsize=12)
+        ax_roc.set_title(f'ROC Curves (Epoch {epoch})', fontsize=14)
+        ax_roc.legend(loc='lower right', fontsize=9)
+        ax_roc.grid(True, alpha=0.3)
+        ax_roc.set_xlim(0, 1)
+        ax_roc.set_ylim(0, 1)
+        fig_roc.tight_layout()
+        
+        # Configure log-scale ROC plot
+        ax_roc_log.set_xlabel('Background pass-through', fontsize=12)
+        ax_roc_log.set_ylabel('Signal efficiency', fontsize=12)
+        ax_roc_log.set_title(f'ROC Curves - Log Scale (Epoch {epoch})', fontsize=14)
+        ax_roc_log.legend(loc='lower right', fontsize=9)
+        ax_roc_log.grid(True, which='both', alpha=0.3)
+        ax_roc_log.set_xscale('log')
+        ax_roc_log.set_xlim(1e-4, 1)
+        ax_roc_log.set_ylim(0, 1)
+        fig_roc_log.tight_layout()
+        
+        # Log ROC figures
+        self.log_figure('val/roc_curves', fig_roc, step=epoch)
+        self.log_figure('val/roc_curves_log', fig_roc_log, step=epoch)
+        
+        # Log score distributions if requested
+        if log_score_distributions:
+            for score_idx, score_name in enumerate(class_names):
+                fig_score, ax_score = plt.subplots(figsize=(8, 6))
+                
+                bins = np.linspace(0, 1, 41)
+                for class_idx, class_name in enumerate(class_names):
+                    class_scores = scores[class_masks[class_idx], score_idx]
+                    if len(class_scores) > 0:
+                        hist, _ = np.histogram(class_scores, bins=bins)
+                        norm = np.sum(hist * np.diff(bins))
+                        if norm > 0:
+                            ax_score.stairs(hist / norm, edges=bins, 
+                                          label=class_name, linewidth=2)
+                
+                ax_score.set_xlabel(f'Score ({score_name})', fontsize=12)
+                ax_score.set_ylabel('Normalized counts', fontsize=12)
+                ax_score.set_title(f'Score Distribution: {score_name} (Epoch {epoch})', fontsize=14)
+                ax_score.legend(fontsize=10)
+                ax_score.set_xlim(0, 1)
+                fig_score.tight_layout()
+                
+                # Sanitize name for wandb key
+                safe_name = score_name.replace('recojet_is', '').lower()
+                self.log_figure(f'val/score_dist_{safe_name}', fig_score, step=epoch)

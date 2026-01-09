@@ -1,4 +1,4 @@
-# Training configuration file with Data Augmentation
+# Training configuration file with Wandb Logging
 # This config file specifies all the configs and settings needed for training
 
 # Paths to config files (relative to this config file or absolute paths)
@@ -8,12 +8,12 @@ sample_train: samplelists/oscar/samples_training.yaml
 sample_test: samplelists/oscar/samples_testing.yaml
 
 # Training hyperparameters
-num_epochs: 50
+num_epochs: 100
 steps_per_epoch: 300
 batch_size: 512
 
 # Output settings
-output_dir: /oscar/data/lgouskos/training_runs/output_part_augmented_no_drop
+output_dir: /oscar/data/lgouskos/training_runs/output_part_augmented_all
 model_prefix_name: network
 test_output: output.root
 
@@ -26,6 +26,14 @@ augment: true
 aug_rotation: true
 aug_reflection: true
 aug_dropout: 0.1
+
+# Weights & Biases logging
+use_wandb: true
+wandb_project: jet-tagging
+wandb_entity: aleph_project
+wandb_name: part_standardized_augmented_all
+wandb_tags: ["part", "standardized", "augmented"]
+wandb_notes: "Baseline training with standardized data and full augmentation"
 
 # Compute settings
 gpus: '0'  # GPU IDs (comma-separated) or empty string for CPU

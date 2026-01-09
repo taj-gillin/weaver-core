@@ -191,6 +191,7 @@ class SequenceTrimmer(nn.Module):
         self.target = target
         self._counter = 0
 
+    @torch.compiler.disable  # Disable torch.compile for this module due to dynamic ops
     def forward(self, x, v=None, mask=None, uu=None):
         # x: (N, C, P)
         # v: (N, 4, P) [px,py,pz,energy]
@@ -206,7 +207,8 @@ class SequenceTrimmer(nn.Module):
             else:
                 if self.training:
                     q = min(1, random.uniform(*self.target))
-                    maxlen = torch.quantile(mask.type_as(x).sum(dim=-1), q).long()
+                    q_tensor = torch.tensor(q, device=x.device, dtype=x.dtype)
+                    maxlen = torch.quantile(mask.type_as(x).sum(dim=-1), q_tensor).long()
                     rand = torch.rand_like(mask.type_as(x))
                     rand.masked_fill_(~mask, -1)
                     perm = rand.argsort(dim=-1, descending=True)  # (N, 1, P)
@@ -219,7 +221,8 @@ class SequenceTrimmer(nn.Module):
                         uu = torch.gather(uu, -1, perm.unsqueeze(-2).expand_as(uu))
                 else:
                     maxlen = mask.sum(dim=-1).max()
-                maxlen = max(maxlen, 1)
+                # Convert to Python int for torch.compile compatibility
+                maxlen = max(int(maxlen.item()), 1)
                 if maxlen < mask.size(-1):
                     mask = mask[:, :, :maxlen]
                     x = x[:, :, :maxlen]
@@ -546,7 +549,7 @@ class ParticleTransformer(nn.Module):
             x, v, mask, uu = self.trimmer(x, v, mask, uu)
             padding_mask = ~mask.squeeze(1)  # (N, P)
 
-        with torch.cuda.amp.autocast(enabled=self.use_amp):
+        with torch.amp.autocast('cuda', enabled=self.use_amp):
             # input embedding
             x = self.embed(x).masked_fill(~mask.permute(2, 0, 1), 0)  # (P, N, C)
             attn_mask = None

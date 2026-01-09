@@ -1,8 +1,14 @@
 import numpy as np
 import awkward as ak
 import copy
+import logging
+
+_logger = logging.getLogger('weaver')
 
 class Augmenter(object):
+    _logged_init = False  # Class variable to log only once
+    _fetch_count = 0  # Count fetches for logging
+    
     def __init__(self, data_config, options=None):
         self.data_config = data_config
         self.options = options if options is not None else {}
@@ -15,13 +21,25 @@ class Augmenter(object):
             'dropout': self.options.get('aug_dropout', 0.0),  # Fraction of particles to drop (0.0-1.0)
             'reflection_prob': self.options.get('aug_reflection_prob', 0.5),  # Probability to apply each reflection
         }
+        
+        # Store last rotation angle and reflection stats for logging
+        self._last_rotation_angle = None
+        self._last_phi_flip_pct = None
+        self._last_eta_flip_pct = None
+        
+        # Log augmentation settings (only once per process)
+        if not Augmenter._logged_init and self.enabled:
+            _logger.info('[Augmenter] Initialized with: rotation=%s, reflection=%s (prob=%.2f), dropout=%.2f',
+                        self.params['rotation'], self.params['reflection'], 
+                        self.params['reflection_prob'], self.params['dropout'])
+            Augmenter._logged_init = True
 
     def augment(self, table):
         if not self.enabled:
             return table
-            
-        # Make a copy to avoid modifying original data in place if needed
-        # (though usually table is already a copy from fileio)
+        
+        Augmenter._fetch_count += 1
+        n_events = len(table)
         
         if self.params['rotation']:
             table = self._rotate(table)
@@ -31,6 +49,13 @@ class Augmenter(object):
             
         if self.params['dropout'] > 0:
             table = self._dropout(table)
+        
+        # Log EVERY fetch with augmentation summary
+        rot_info = f"rot={self._last_rotation_angle:.3f}rad" if self._last_rotation_angle is not None else "rot=N/A"
+        phi_info = f"phi_flip={self._last_phi_flip_pct:.1f}%" if self._last_phi_flip_pct is not None else ""
+        eta_info = f"eta_flip={self._last_eta_flip_pct:.1f}%" if self._last_eta_flip_pct is not None else ""
+        
+        _logger.info(f'[Augmenter] Fetch #{Augmenter._fetch_count}: {n_events} events | {rot_info} | {phi_info} | {eta_info}')
             
         return table
 
@@ -42,11 +67,15 @@ class Augmenter(object):
         """
         # Check if we have the necessary columns
         if 'pfcand_phirel' not in table.fields:
+            self._last_rotation_angle = None
             return table
             
         # Generate random angle for each event
         n_events = len(table['pfcand_phirel'])
         theta = np.random.uniform(0, 2 * np.pi, n_events)
+        
+        # Store first rotation angle for logging
+        self._last_rotation_angle = float(theta[0]) if n_events > 0 else None
         
         # Broadcast theta to match particle structure
         # theta is (N,), table['pfcand_phirel'] is (N, M) where M can be jagged
@@ -99,6 +128,9 @@ class Augmenter(object):
         apply_phi_reflection = np.random.rand(n_events) < reflection_prob
         mask_phi = np.where(apply_phi_reflection, -1, 1)
         
+        # Store phi flip stats for logging
+        self._last_phi_flip_pct = 100.0 * np.sum(apply_phi_reflection) / n_events if n_events > 0 else 0
+        
         if 'pfcand_phirel' in table.fields:
             mask_phi_broadcast = ak.broadcast_arrays(mask_phi, table['pfcand_phirel'])[0]
             table['pfcand_phirel'] = table['pfcand_phirel'] * mask_phi_broadcast
@@ -111,6 +143,9 @@ class Augmenter(object):
         # Apply to each event with probability reflection_prob (independent of phi reflection)
         apply_eta_reflection = np.random.rand(n_events) < reflection_prob
         mask_eta = np.where(apply_eta_reflection, -1, 1)
+        
+        # Store eta flip stats for logging
+        self._last_eta_flip_pct = 100.0 * np.sum(apply_eta_reflection) / n_events if n_events > 0 else 0
         
         if 'pfcand_thetarel' in table.fields:
             mask_eta_broadcast = ak.broadcast_arrays(mask_eta, table['pfcand_thetarel'])[0]

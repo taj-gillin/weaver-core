@@ -11,6 +11,7 @@ import numpy as np
 import math
 import copy
 import torch
+from weaver.utils.nn.tools import _flatten_preds
 
 from torch.utils.data import DataLoader
 from weaver.utils.logger import _logger, _configLogger
@@ -66,6 +67,19 @@ parser.add_argument('--tensorboard', type=str, default=None,
 parser.add_argument('--tensorboard-custom-fn', type=str, default=None,
                     help='the path of the python script containing a user-specified function `get_tensorboard_custom_fn`, '
                          'to display custom information per mini-batch or per epoch, during the training, validation or test.')
+# Wandb logging options
+parser.add_argument('--use-wandb', action='store_true', default=False,
+                    help='enable Weights & Biases logging')
+parser.add_argument('--wandb-project', type=str, default='weaver-training',
+                    help='wandb project name')
+parser.add_argument('--wandb-entity', type=str, default=None,
+                    help='wandb team/user name')
+parser.add_argument('--wandb-name', type=str, default=None,
+                    help='wandb run name (auto-generated if not provided)')
+parser.add_argument('--wandb-tags', type=str, default=None,
+                    help='comma-separated list of tags for the wandb run')
+parser.add_argument('--wandb-notes', type=str, default=None,
+                    help='notes for the wandb run')
 parser.add_argument('-n', '--network-config', type=str,
                     help='network architecture configuration file; the path must be relative to the current dir')
 parser.add_argument('-o', '--network-option', nargs=2, action='append', default=[],
@@ -141,10 +155,37 @@ parser.add_argument('--print', action='store_true', default=False,
                     help='do not run training/prediction but only print model information, e.g., FLOPs and number of parameters of a model')
 parser.add_argument('--profile', action='store_true', default=False,
                     help='run the profiler')
+parser.add_argument('--profile-train', action='store_true', default=False,
+                    help='profile a short slice of the real training loop (forward+backward+optimizer)')
+parser.add_argument('--profile-steps', type=int, default=40,
+                    help='number of training steps to capture when --profile-train is set')
+parser.add_argument('--profile-dir', type=str, default=None,
+                    help='where to write profiler traces; defaults to the model_prefix directory')
+parser.add_argument('--profile-train-full', action='store_true', default=False,
+                    help='profile the entire training run (all epochs/steps) and export a single trace')
+parser.add_argument('--profile-train-full-active', type=int, default=10,
+                    help='number of steps per profiler window when using --profile-train-full (smaller keeps memory down)')
 parser.add_argument('--backend', type=str, choices=['gloo', 'nccl', 'mpi'], default=None,
                     help='backend for distributed training')
 parser.add_argument('--cross-validation', type=str, default=None,
                     help='enable k-fold cross validation; input format: `variable_name%%k`')
+parser.add_argument('--compile', action='store_true', default=False,
+                    help='use torch.compile() to optimize the model for faster training (requires PyTorch 2.0+)')
+parser.add_argument('--compile-mode', type=str, default='default',
+                    choices=['default', 'reduce-overhead', 'max-autotune'],
+                    help='torch.compile mode: default (balanced), reduce-overhead (faster compile), max-autotune (slower compile but faster runtime)')
+
+# Data augmentation options
+parser.add_argument('--augment', action='store_true', default=False,
+                    help='enable data augmentation during training')
+parser.add_argument('--aug-rotation', action='store_true', default=False,
+                    help='enable azimuthal rotation augmentation')
+parser.add_argument('--aug-reflection', action='store_true', default=False,
+                    help='enable phi/eta reflection augmentation')
+parser.add_argument('--aug-dropout', type=float, default=0.0,
+                    help='fraction of particles to drop (0.0-1.0), biased toward low-pT particles')
+parser.add_argument('--aug-reflection-prob', type=float, default=0.5,
+                    help='probability to apply each reflection (phi and eta independently)')
 
 
 def parse_file_patterns(file_patterns, local_rank=None, copy_inputs=False):
@@ -279,6 +320,15 @@ def train_load(args):
     # print number of files for debugging
     _logger.info('Using %d files for training, range: %s' % (len(train_files), str(train_range)))
     _logger.info('Using %d files for validation, range: %s' % (len(val_files), str(val_range)))
+    
+    # Log augmentation settings
+    if args.augment:
+        _logger.info('Data augmentation ENABLED:')
+        _logger.info('  - Rotation: %s' % args.aug_rotation)
+        _logger.info('  - Reflection: %s (prob=%.2f)' % (args.aug_reflection, args.aug_reflection_prob))
+        _logger.info('  - Dropout: %.2f' % args.aug_dropout)
+    else:
+        _logger.info('Data augmentation DISABLED')
 
     # modify files and some data loading settings for small demo runs
     if args.demo:
@@ -307,7 +357,13 @@ def train_load(args):
                                    fetch_step=args.fetch_step,
                                    infinity_mode=args.steps_per_epoch is not None,
                                    in_memory=args.in_memory,
-                                   name=name)
+                                   name=name,
+                                   # Data augmentation options (training only)
+                                   augment=args.augment,
+                                   aug_rotation=args.aug_rotation,
+                                   aug_reflection=args.aug_reflection,
+                                   aug_dropout=args.aug_dropout,
+                                   aug_reflection_prob=args.aug_reflection_prob)
     train_loader = DataLoader(train_data, batch_size=args.batch_size, drop_last=True, pin_memory=True,
                      num_workers=min(args.num_workers, int(len(train_files) * args.file_fraction)),
                      persistent_workers=args.num_workers > 0 and args.steps_per_epoch is not None)
@@ -476,6 +532,71 @@ def profile(args, model, model_info, device):
         for idx in range(100):
             model(*inputs)
             p.step()
+
+
+def profile_training_loop(args, model, loss_func, opt, scheduler, train_loader, device, data_config, grad_scaler=None):
+    """
+    Profile a short slice of the real training loop (forward + backward + optimizer).
+    Writes a Chrome trace to `profile_dir/profile_trace.json`.
+    """
+    import torch.profiler
+
+    profile_dir = args.profile_dir
+    if profile_dir is None or profile_dir == '':
+        profile_dir = os.path.dirname(args.model_prefix) or '.'
+    os.makedirs(profile_dir, exist_ok=True)
+    trace_path = os.path.join(profile_dir, 'profile_trace.json')
+
+    activities = [torch.profiler.ProfilerActivity.CPU]
+    if device.type == 'cuda':
+        activities.append(torch.profiler.ProfilerActivity.CUDA)
+
+    data_iter = iter(train_loader)
+    model.train()
+    steps = max(1, args.profile_steps)
+
+    with torch.profiler.profile(
+        activities=activities,
+        record_shapes=True,
+        profile_memory=True
+    ) as prof:
+        for step in range(steps):
+            try:
+                X, y, _ = next(data_iter)
+            except StopIteration:
+                data_iter = iter(train_loader)
+                X, y, _ = next(data_iter)
+
+            inputs = [X[k].to(device) for k in data_config.input_names]
+            label = y[data_config.label_names[0]].long().to(device)
+            mask = None
+            mask_key = data_config.label_names[0] + '_mask'
+            if mask_key in y:
+                mask = y[mask_key].bool().to(device)
+
+            opt.zero_grad()
+            with torch.amp.autocast('cuda', enabled=grad_scaler is not None):
+                model_output = model(*inputs)
+                logits, label, _ = _flatten_preds(model_output, label=label, mask=mask)
+                loss = loss_func(logits, label)
+
+            if grad_scaler is None:
+                loss.backward()
+                opt.step()
+            else:
+                grad_scaler.scale(loss).backward()
+                grad_scaler.step(opt)
+                grad_scaler.update()
+
+            if scheduler and getattr(scheduler, '_update_per_step', False):
+                scheduler.step()
+
+            prof.step()
+
+    prof.export_chrome_trace(trace_path)
+    _logger.info('Profiler trace saved to %s', trace_path)
+    table = prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=50)
+    _logger.info('Profiler summary (top 50 by self_cuda_time_total):\n%s', table)
 
 
 def optim(args, model, device):
@@ -842,18 +963,90 @@ def _main(args):
         profile(args, model, model_info, device=dev)
         return
 
+    if args.profile_train:
+        # Profile a short slice of the real training loop then exit.
+        model = model.to(dev)
+        if args.backend is not None:
+            model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=gpus, output_device=local_rank, find_unused_parameters=True)
+        elif gpus is not None and len(gpus) > 1:
+            model = torch.nn.DataParallel(model, device_ids=gpus)
+        grad_scaler = torch.cuda.amp.GradScaler() if args.use_amp else None
+        opt, scheduler = optim(args, model, dev)
+        profile_training_loop(args, model, loss_func, opt, scheduler, train_loader, dev, data_config, grad_scaler=grad_scaler)
+        return
+
     if args.tensorboard:
         from weaver.utils.nn.tools import TensorboardHelper
         tb = TensorboardHelper(tb_comment=args.tensorboard, tb_custom_fn=args.tensorboard_custom_fn)
     else:
         tb = None
 
+    # Initialize wandb if enabled
+    if args.use_wandb:
+        from weaver.utils.nn.tools import WandbHelper
+        wandb_config = {
+            'model_config': args.network_config,
+            'data_config': args.data_config,
+            'num_epochs': args.num_epochs,
+            'batch_size': args.batch_size,
+            'learning_rate': args.start_lr,
+            'optimizer': args.optimizer,
+            'scheduler': args.lr_scheduler,
+            'regression_mode': args.regression_mode,
+        }
+        wb = WandbHelper(
+            config=wandb_config,
+            project=args.wandb_project,
+            entity=args.wandb_entity,
+            name=args.wandb_name,
+            tags=args.wandb_tags,
+            notes=args.wandb_notes
+        )
+    else:
+        wb = None
+
     # note: we should always save/load the state_dict of the original model, not the one wrapped by nn.DataParallel
     # so we do not convert it to nn.DataParallel now
     orig_model = model
 
     if training_mode:
+        profiler = None
+        profile_dir = args.profile_dir
+        if profile_dir is None or profile_dir == '':
+            profile_dir = os.path.dirname(args.model_prefix) or '.'
+
+        if args.profile_train_full:
+            os.makedirs(profile_dir, exist_ok=True)
+            activities = [torch.profiler.ProfilerActivity.CPU]
+            if dev.type == 'cuda':
+                activities.append(torch.profiler.ProfilerActivity.CUDA)
+
+            trace_idx = {'i': 0}
+
+            def trace_handler(p):
+                trace_path = os.path.join(profile_dir, f'profile_train_full_{trace_idx["i"]}.json')
+                p.export_chrome_trace(trace_path)
+                trace_idx['i'] += 1
+
+            active_len = max(1, args.profile_train_full_active)
+            profiler = torch.profiler.profile(
+                activities=activities,
+                schedule=torch.profiler.schedule(wait=0, warmup=0, active=active_len, repeat=1_000_000),
+                on_trace_ready=trace_handler,
+                record_shapes=True,
+                profile_memory=False,
+                with_stack=False,
+            )
+            profiler.__enter__()
+
         model = orig_model.to(dev)
+
+        # Apply torch.compile for faster training (PyTorch 2.0+)
+        if args.compile:
+            _logger.info('Compiling model with torch.compile (mode=%s)...' % args.compile_mode)
+            model = torch.compile(model, mode=args.compile_mode)
+            _logger.info('Model compiled successfully')
 
         # DistributedDataParallel
         if args.backend is not None:
@@ -862,6 +1055,10 @@ def _main(args):
 
         # optimizer & learning rate
         opt, scheduler = optim(args, model, dev)
+
+        # Watch model with wandb if enabled
+        if wb is not None:
+            wb.watch_model(model)
 
         # DataParallel
         if args.backend is None:
@@ -878,45 +1075,60 @@ def _main(args):
                                  label_names=train_label_names)
             lr_finder.range_test(train_loader, start_lr=float(start_lr), end_lr=float(end_lr), num_iter=int(num_iter))
             lr_finder.plot(output='lr_finder.png')  # to inspect the loss-learning rate graph
+            if profiler is not None:
+                profiler.__exit__(None, None, None)
             return
 
         # training loop
         best_valid_metric = np.inf if args.regression_mode else 0
         grad_scaler = torch.cuda.amp.GradScaler() if args.use_amp else None
-        for epoch in range(args.num_epochs):
-            if args.load_epoch is not None:
-                if epoch <= args.load_epoch:
-                    continue
-            _logger.info('-' * 50)
-            _logger.info('Epoch #%d training' % epoch)
-            train(model, loss_func, opt, scheduler, train_loader, dev, epoch,
-                  steps_per_epoch=args.steps_per_epoch, grad_scaler=grad_scaler, tb_helper=tb)
-            if args.model_prefix and (args.backend is None or local_rank == 0):
-                dirname = os.path.dirname(args.model_prefix)
-                if dirname and not os.path.exists(dirname):
-                    os.makedirs(dirname)
-                state_dict = model.module.state_dict() if isinstance(
-                    model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel)) else model.state_dict()
-                torch.save(state_dict, args.model_prefix + '_epoch-%d_state.pt' % epoch)
-                torch.save(opt.state_dict(), args.model_prefix + '_epoch-%d_optimizer.pt' % epoch)
-            # if args.backend is not None and local_rank == 0:
-            # TODO: save checkpoint
-            #     save_checkpoint()
-
-            _logger.info('Epoch #%d validating' % epoch)
-            valid_metric = evaluate(model, val_loader, dev, epoch, loss_func=loss_func,
-                                    steps_per_epoch=args.steps_per_epoch_val, tb_helper=tb)
-            is_best_epoch = (
-                valid_metric < best_valid_metric) if args.regression_mode else(
-                valid_metric > best_valid_metric)
-            if is_best_epoch:
-                best_valid_metric = valid_metric
+        try:
+            for epoch in range(args.num_epochs):
+                if args.load_epoch is not None:
+                    if epoch <= args.load_epoch:
+                        continue
+                _logger.info('-' * 50)
+                _logger.info('Epoch #%d training' % epoch)
+                train(model, loss_func, opt, scheduler, train_loader, dev, epoch,
+                      steps_per_epoch=args.steps_per_epoch, grad_scaler=grad_scaler, tb_helper=tb, wandb_helper=wb, profiler=profiler)
                 if args.model_prefix and (args.backend is None or local_rank == 0):
-                    shutil.copy2(args.model_prefix + '_epoch-%d_state.pt' %
-                                 epoch, args.model_prefix + '_best_epoch_state.pt')
-                    # torch.save(model, args.model_prefix + '_best_epoch_full.pt')
-            _logger.info('Epoch #%d: Current validation metric: %.5f (best: %.5f)' %
-                         (epoch, valid_metric, best_valid_metric), color='bold')
+                    dirname = os.path.dirname(args.model_prefix)
+                    if dirname and not os.path.exists(dirname):
+                        os.makedirs(dirname)
+                    # Get state_dict from the original model to avoid torch.compile's _orig_mod prefix
+                    # and DataParallel/DistributedDataParallel's module prefix
+                    if isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel)):
+                        state_dict = model.module.state_dict()
+                    elif args.compile:
+                        # For compiled models, save from orig_model which has correct keys
+                        state_dict = orig_model.state_dict()
+                    else:
+                        state_dict = model.state_dict()
+                    torch.save(state_dict, args.model_prefix + '_epoch-%d_state.pt' % epoch)
+                    torch.save(opt.state_dict(), args.model_prefix + '_epoch-%d_optimizer.pt' % epoch)
+                # if args.backend is not None and local_rank == 0:
+                # TODO: save checkpoint
+                #     save_checkpoint()
+
+                _logger.info('Epoch #%d validating' % epoch)
+                valid_metric = evaluate(model, val_loader, dev, epoch, loss_func=loss_func,
+                                        steps_per_epoch=args.steps_per_epoch_val, tb_helper=tb, wandb_helper=wb)
+                is_best_epoch = (
+                    valid_metric < best_valid_metric) if args.regression_mode else(
+                    valid_metric > best_valid_metric)
+                if is_best_epoch:
+                    best_valid_metric = valid_metric
+                    if args.model_prefix and (args.backend is None or local_rank == 0):
+                        shutil.copy2(args.model_prefix + '_epoch-%d_state.pt' %
+                                     epoch, args.model_prefix + '_best_epoch_state.pt')
+                        # torch.save(model, args.model_prefix + '_best_epoch_full.pt')
+                _logger.info('Epoch #%d: Current validation metric: %.5f (best: %.5f)' %
+                             (epoch, valid_metric, best_valid_metric), color='bold')
+        finally:
+            if args.profile_train_full and profiler is not None:
+                profiler.__exit__(None, None, None)
+                table = profiler.key_averages().table(sort_by="self_cuda_time_total", row_limit=50)
+                _logger.info('Profiler summary (top 50 by self_cuda_time_total):\n%s', table)
 
     if args.data_test:
         if args.backend is not None and local_rank != 0:

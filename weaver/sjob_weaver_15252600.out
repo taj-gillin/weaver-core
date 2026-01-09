@@ -1,0 +1,657 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 15252600
+##  Job Name : sjob_weaver
+##  Nodelist : gpu1401
+##      CPUs : 1
+##  Mem/Node : 16384 MB
+## Directory : /oscar/home/tgillin/files/weaver-core/weaver
+##   Job Started : Wed Jan  7 01:50:28 AM EST 2026
+###############################################################################
+current host: gpu1401.oscar.ccv.brown.edu
+current directory: /users/tgillin/files/weaver-core/weaver
+current time: Wed Jan 7 01:50:28 AM EST 2026
+[2026-01-07 01:50:50,662] INFO: args:
+ - ('regression_mode', False)
+ - ('data_config', '/oscar/data/lgouskos/training_runs/output_part/data_config.yaml')
+ - ('extra_selection', None)
+ - ('extra_test_selection', None)
+ - ('data_train', ['/oscar/data/lgouskos/training_runs/output_part/sample_config_train.yaml'])
+ - ('data_val', [])
+ - ('data_test', ['/oscar/data/lgouskos/training_runs/output_part/sample_config_test.yaml'])
+ - ('data_fraction', 1)
+ - ('file_fraction', 1)
+ - ('fetch_by_files', False)
+ - ('fetch_step', 0.01)
+ - ('in_memory', False)
+ - ('train_val_split', 0.8)
+ - ('no_remake_weights', False)
+ - ('demo', False)
+ - ('lr_finder', None)
+ - ('tensorboard', None)
+ - ('tensorboard_custom_fn', None)
+ - ('use_wandb', False)
+ - ('wandb_project', 'weaver-training')
+ - ('wandb_entity', None)
+ - ('wandb_name', None)
+ - ('wandb_tags', None)
+ - ('wandb_notes', None)
+ - ('network_config', '/oscar/data/lgouskos/training_runs/output_part/model_config.py')
+ - ('network_option', [])
+ - ('model_prefix', '/oscar/data/lgouskos/training_runs/output_part/network')
+ - ('load_model_weights', None)
+ - ('exclude_model_weights', None)
+ - ('freeze_model_weights', None)
+ - ('num_epochs', 50)
+ - ('steps_per_epoch', 300)
+ - ('steps_per_epoch_val', 75)
+ - ('samples_per_epoch', None)
+ - ('samples_per_epoch_val', None)
+ - ('optimizer', 'ranger')
+ - ('optimizer_option', [])
+ - ('lr_scheduler', 'flat+decay')
+ - ('warmup_steps', 0)
+ - ('load_epoch', None)
+ - ('start_lr', 0.005)
+ - ('batch_size', 512)
+ - ('predict_batch_size', 512)
+ - ('use_amp', False)
+ - ('gpus', '0')
+ - ('predict_gpus', '0')
+ - ('num_workers', 0)
+ - ('predict', False)
+ - ('predict_output', '/oscar/data/lgouskos/training_runs/output_part/output.root')
+ - ('export_onnx', None)
+ - ('onnx_opset', 15)
+ - ('io_test', False)
+ - ('copy_inputs', True)
+ - ('log', '')
+ - ('print', False)
+ - ('profile', False)
+ - ('profile_train', False)
+ - ('profile_steps', 40)
+ - ('profile_dir', None)
+ - ('profile_train_full', False)
+ - ('profile_train_full_active', 10)
+ - ('backend', None)
+ - ('cross_validation', None)
+ - ('augment', True)
+ - ('aug_rotation', False)
+ - ('aug_reflection', False)
+ - ('aug_dropout', 0.0)
+ - ('aug_reflection_prob', 0.5)
+ - ('local_rank', None)
+[2026-01-07 01:50:50,662] INFO: Running in classification mode
+HERE
+1
+ALSO HERE
+[2026-01-07 01:50:50,662] INFO: Reading sample list /oscar/data/lgouskos/training_runs/output_part/sample_config_train.yaml for training data.
+[2026-01-07 01:50:51,389] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_0_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_0_train.root
+[2026-01-07 01:50:51,985] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_10_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_10_train.root
+[2026-01-07 01:50:52,390] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_11_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_11_train.root
+[2026-01-07 01:50:53,425] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_12_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_12_train.root
+[2026-01-07 01:50:54,340] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_13_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_13_train.root
+[2026-01-07 01:50:54,851] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_14_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_14_train.root
+[2026-01-07 01:50:55,389] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_15_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_15_train.root
+[2026-01-07 01:50:56,052] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_16_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_16_train.root
+[2026-01-07 01:50:56,894] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_17_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_17_train.root
+[2026-01-07 01:50:57,397] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_18_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_18_train.root
+[2026-01-07 01:50:57,975] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_19_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_19_train.root
+[2026-01-07 01:50:58,316] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_1_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_1_train.root
+[2026-01-07 01:50:59,455] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_20_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_20_train.root
+[2026-01-07 01:51:00,743] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_21_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_21_train.root
+[2026-01-07 01:51:01,121] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_22_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_22_train.root
+[2026-01-07 01:51:01,630] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_23_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_23_train.root
+[2026-01-07 01:51:02,445] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_24_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_24_train.root
+[2026-01-07 01:51:03,134] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_25_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_25_train.root
+[2026-01-07 01:51:03,500] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_26_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_26_train.root
+[2026-01-07 01:51:04,618] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_27_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_27_train.root
+[2026-01-07 01:51:05,519] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_28_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_28_train.root
+[2026-01-07 01:51:05,953] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_29_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_29_train.root
+[2026-01-07 01:51:06,891] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_2_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_2_train.root
+[2026-01-07 01:51:07,253] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_30_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_30_train.root
+[2026-01-07 01:51:08,060] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_31_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_31_train.root
+[2026-01-07 01:51:08,522] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_32_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_32_train.root
+[2026-01-07 01:51:09,230] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_33_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_33_train.root
+[2026-01-07 01:51:09,920] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_34_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_34_train.root
+[2026-01-07 01:51:10,713] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_35_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_35_train.root
+[2026-01-07 01:51:11,100] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_36_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_36_train.root
+[2026-01-07 01:51:11,737] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_37_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_37_train.root
+[2026-01-07 01:51:12,552] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_38_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_38_train.root
+[2026-01-07 01:51:13,117] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_39_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_39_train.root
+[2026-01-07 01:51:14,092] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_3_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_3_train.root
+[2026-01-07 01:51:14,506] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_40_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_40_train.root
+[2026-01-07 01:51:15,106] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_41_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_41_train.root
+[2026-01-07 01:51:16,014] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_42_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_42_train.root
+[2026-01-07 01:51:16,836] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_43_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_43_train.root
+[2026-01-07 01:51:17,367] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_44_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_44_train.root
+[2026-01-07 01:51:17,872] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_45_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_45_train.root
+[2026-01-07 01:51:18,501] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_46_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_46_train.root
+[2026-01-07 01:51:19,071] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_47_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_47_train.root
+[2026-01-07 01:51:20,097] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_48_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_48_train.root
+[2026-01-07 01:51:21,122] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_49_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_49_train.root
+[2026-01-07 01:51:21,802] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_4_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_4_train.root
+[2026-01-07 01:51:22,234] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_50_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_50_train.root
+[2026-01-07 01:51:23,284] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_51_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_51_train.root
+[2026-01-07 01:51:24,191] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_52_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_52_train.root
+[2026-01-07 01:51:25,199] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_53_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_53_train.root
+[2026-01-07 01:51:25,515] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_54_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_54_train.root
+[2026-01-07 01:51:25,870] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_55_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_55_train.root
+[2026-01-07 01:51:26,767] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_56_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_56_train.root
+[2026-01-07 01:51:27,582] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_57_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_57_train.root
+[2026-01-07 01:51:28,443] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_58_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_58_train.root
+[2026-01-07 01:51:29,079] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_59_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_59_train.root
+[2026-01-07 01:51:29,560] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_5_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_5_train.root
+[2026-01-07 01:51:30,548] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_60_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_60_train.root
+[2026-01-07 01:51:31,756] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_61_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_61_train.root
+[2026-01-07 01:51:32,550] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_62_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_62_train.root
+[2026-01-07 01:51:33,293] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_63_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_63_train.root
+[2026-01-07 01:51:34,268] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_64_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_64_train.root
+[2026-01-07 01:51:34,671] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_65_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_65_train.root
+[2026-01-07 01:51:35,106] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_66_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_66_train.root
+[2026-01-07 01:51:35,822] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_67_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_67_train.root
+[2026-01-07 01:51:36,887] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_68_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_68_train.root
+[2026-01-07 01:51:37,573] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_69_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_69_train.root
+[2026-01-07 01:51:37,984] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_6_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_6_train.root
+[2026-01-07 01:51:38,484] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_7_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_7_train.root
+[2026-01-07 01:51:39,095] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_8_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_8_train.root
+[2026-01-07 01:51:39,630] INFO: Copied file /HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_9_train.root to /tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_9_train.root
+[2026-01-07 01:51:39,630] INFO: Using 70 files for training, range: (0, 0.8)
+[2026-01-07 01:51:39,630] INFO: Using 70 files for validation, range: (0.8, 1)
+[2026-01-07 01:51:39,630] INFO: Data augmentation ENABLED:
+[2026-01-07 01:51:39,630] INFO:   - Rotation: False
+[2026-01-07 01:51:39,630] INFO:   - Reflection: False (prob=0.50)
+[2026-01-07 01:51:39,630] INFO:   - Dropout: 0.00
+[2026-01-07 01:51:39,643] INFO: [0;37mpreprocess config: {'method': 'manual', 'data_fraction': 0.5, 'params': None}[0m
+[2026-01-07 01:51:39,643] INFO: [0;37mselection: None[0m
+[2026-01-07 01:51:39,643] INFO: [0;37mtest_time_selection: None[0m
+[2026-01-07 01:51:39,643] INFO: [0;37mvar_funcs:
+ - ('pfcand_mask', 'ak.ones_like(pfcand_pt)')
+ - ('pfcand_pt_log', 'np.log(pfcand_pt)')
+ - ('pfcand_e_log', 'np.log(pfcand_e)')
+ - ('pfcand_drrel', 'np.hypot(pfcand_thetarel, pfcand_phirel)')
+ - ('_label_', 'np.argmax(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')
+ - ('_labelcheck_', 'np.sum(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')[0m
+[2026-01-07 01:51:39,643] INFO: [0;37minput_names: ('pf_points', 'pf_features', 'pf_vectors', 'pf_mask')[0m
+[2026-01-07 01:51:39,643] INFO: [0;37minput_dicts:
+ - ('pf_points', ['pfcand_thetarel', 'pfcand_phirel'])
+ - ('pf_features', ['pfcand_pt_log', 'pfcand_e_log', 'pfcand_ptrel_log', 'pfcand_erel_log', 'pfcand_drrel', 'pfcand_thetarel', 'pfcand_phirel', 'pfcand_charge', 'pfcand_dxy', 'pfcand_dz', 'pfcand_Sip2dVal', 'pfcand_Sip2dSig', 'pfcand_Sip3dVal', 'pfcand_Sip3dSig', 'pfcand_JetDistVal', 'pfcand_JetDistSig', 'pfcand_linearSignedIP3D', 'pfcand_linearSignedIP3DSig', 'pfcand_transverseJetDistance', 'pfcand_longitudinalJetDistance', 'pfcand_isChargedHad', 'pfcand_isNeutralHad', 'pfcand_isGamma', 'pfcand_isEl', 'pfcand_isMu', 'pfcand_trackChi2Normalized', 'pfcand_nTrackHits_VDET', 'pfcand_nTrackHits_ITC', 'pfcand_nTrackHits_TPC'])
+ - ('pf_vectors', ['pfcand_px', 'pfcand_py', 'pfcand_pz', 'pfcand_e'])
+ - ('pf_mask', ['pfcand_mask'])[0m
+[2026-01-07 01:51:39,643] INFO: [0;37minput_shapes:
+ - ('pf_points', (-1, 2, 128))
+ - ('pf_features', (-1, 29, 128))
+ - ('pf_vectors', (-1, 4, 128))
+ - ('pf_mask', (-1, 1, 128))[0m
+[2026-01-07 01:51:39,643] INFO: [0;37mpreprocess_params:
+ - ('pfcand_thetarel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_phirel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pt_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_ptrel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_erel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_drrel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_charge', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dxy', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3D', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3DSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_transverseJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_longitudinalJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isChargedHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isNeutralHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isGamma', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isEl', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isMu', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_trackChi2Normalized', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_VDET', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_ITC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_TPC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_px', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_py', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_mask', {'length': 128, 'pad_mode': 'constant', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})[0m
+[2026-01-07 01:51:39,644] INFO: [0;37mlabel_names: ('_label_',)[0m
+[2026-01-07 01:51:39,644] INFO: [0;37mobserver_names: ('recojet_pt', 'recojet_eta', 'recojet_theta', 'recojet_phi', 'recojet_e', 'recojet_mass', 'nconst')[0m
+[2026-01-07 01:51:39,644] INFO: [0;37mmonitor_variables: ()[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mpreprocess config: {'method': 'manual', 'data_fraction': 0.5, 'params': None}[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mselection: None[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mtest_time_selection: None[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mvar_funcs:
+ - ('pfcand_mask', 'ak.ones_like(pfcand_pt)')
+ - ('pfcand_pt_log', 'np.log(pfcand_pt)')
+ - ('pfcand_e_log', 'np.log(pfcand_e)')
+ - ('pfcand_drrel', 'np.hypot(pfcand_thetarel, pfcand_phirel)')
+ - ('_label_', 'np.argmax(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')
+ - ('_labelcheck_', 'np.sum(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')[0m
+[2026-01-07 01:51:39,654] INFO: [0;37minput_names: ('pf_points', 'pf_features', 'pf_vectors', 'pf_mask')[0m
+[2026-01-07 01:51:39,654] INFO: [0;37minput_dicts:
+ - ('pf_points', ['pfcand_thetarel', 'pfcand_phirel'])
+ - ('pf_features', ['pfcand_pt_log', 'pfcand_e_log', 'pfcand_ptrel_log', 'pfcand_erel_log', 'pfcand_drrel', 'pfcand_thetarel', 'pfcand_phirel', 'pfcand_charge', 'pfcand_dxy', 'pfcand_dz', 'pfcand_Sip2dVal', 'pfcand_Sip2dSig', 'pfcand_Sip3dVal', 'pfcand_Sip3dSig', 'pfcand_JetDistVal', 'pfcand_JetDistSig', 'pfcand_linearSignedIP3D', 'pfcand_linearSignedIP3DSig', 'pfcand_transverseJetDistance', 'pfcand_longitudinalJetDistance', 'pfcand_isChargedHad', 'pfcand_isNeutralHad', 'pfcand_isGamma', 'pfcand_isEl', 'pfcand_isMu', 'pfcand_trackChi2Normalized', 'pfcand_nTrackHits_VDET', 'pfcand_nTrackHits_ITC', 'pfcand_nTrackHits_TPC'])
+ - ('pf_vectors', ['pfcand_px', 'pfcand_py', 'pfcand_pz', 'pfcand_e'])
+ - ('pf_mask', ['pfcand_mask'])[0m
+[2026-01-07 01:51:39,654] INFO: [0;37minput_shapes:
+ - ('pf_points', (-1, 2, 128))
+ - ('pf_features', (-1, 29, 128))
+ - ('pf_vectors', (-1, 4, 128))
+ - ('pf_mask', (-1, 1, 128))[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mpreprocess_params:
+ - ('pfcand_thetarel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_phirel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pt_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_ptrel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_erel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_drrel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_charge', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dxy', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3D', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3DSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_transverseJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_longitudinalJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isChargedHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isNeutralHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isGamma', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isEl', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isMu', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_trackChi2Normalized', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_VDET', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_ITC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_TPC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_px', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_py', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_mask', {'length': 128, 'pad_mode': 'constant', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mlabel_names: ('_label_',)[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mobserver_names: ()[0m
+[2026-01-07 01:51:39,654] INFO: [0;37mmonitor_variables: ()[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mpreprocess config: {'method': 'manual', 'data_fraction': 0.5, 'params': None}[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mselection: None[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mtest_time_selection: None[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mvar_funcs:
+ - ('pfcand_mask', 'ak.ones_like(pfcand_pt)')
+ - ('pfcand_pt_log', 'np.log(pfcand_pt)')
+ - ('pfcand_e_log', 'np.log(pfcand_e)')
+ - ('pfcand_drrel', 'np.hypot(pfcand_thetarel, pfcand_phirel)')
+ - ('_label_', 'np.argmax(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')
+ - ('_labelcheck_', 'np.sum(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')[0m
+[2026-01-07 01:51:39,664] INFO: [0;37minput_names: ('pf_points', 'pf_features', 'pf_vectors', 'pf_mask')[0m
+[2026-01-07 01:51:39,664] INFO: [0;37minput_dicts:
+ - ('pf_points', ['pfcand_thetarel', 'pfcand_phirel'])
+ - ('pf_features', ['pfcand_pt_log', 'pfcand_e_log', 'pfcand_ptrel_log', 'pfcand_erel_log', 'pfcand_drrel', 'pfcand_thetarel', 'pfcand_phirel', 'pfcand_charge', 'pfcand_dxy', 'pfcand_dz', 'pfcand_Sip2dVal', 'pfcand_Sip2dSig', 'pfcand_Sip3dVal', 'pfcand_Sip3dSig', 'pfcand_JetDistVal', 'pfcand_JetDistSig', 'pfcand_linearSignedIP3D', 'pfcand_linearSignedIP3DSig', 'pfcand_transverseJetDistance', 'pfcand_longitudinalJetDistance', 'pfcand_isChargedHad', 'pfcand_isNeutralHad', 'pfcand_isGamma', 'pfcand_isEl', 'pfcand_isMu', 'pfcand_trackChi2Normalized', 'pfcand_nTrackHits_VDET', 'pfcand_nTrackHits_ITC', 'pfcand_nTrackHits_TPC'])
+ - ('pf_vectors', ['pfcand_px', 'pfcand_py', 'pfcand_pz', 'pfcand_e'])
+ - ('pf_mask', ['pfcand_mask'])[0m
+[2026-01-07 01:51:39,664] INFO: [0;37minput_shapes:
+ - ('pf_points', (-1, 2, 128))
+ - ('pf_features', (-1, 29, 128))
+ - ('pf_vectors', (-1, 4, 128))
+ - ('pf_mask', (-1, 1, 128))[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mpreprocess_params:
+ - ('pfcand_thetarel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_phirel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pt_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_ptrel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_erel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_drrel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_charge', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dxy', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3D', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3DSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_transverseJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_longitudinalJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isChargedHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isNeutralHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isGamma', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isEl', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isMu', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_trackChi2Normalized', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_VDET', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_ITC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_TPC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_px', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_py', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_mask', {'length': 128, 'pad_mode': 'constant', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mlabel_names: ('_label_',)[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mobserver_names: ('recojet_pt', 'recojet_eta', 'recojet_theta', 'recojet_phi', 'recojet_e', 'recojet_mass', 'nconst')[0m
+[2026-01-07 01:51:39,664] INFO: [0;37mmonitor_variables: ()[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mpreprocess config: {'method': 'manual', 'data_fraction': 0.5, 'params': None}[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mselection: None[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mtest_time_selection: None[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mvar_funcs:
+ - ('pfcand_mask', 'ak.ones_like(pfcand_pt)')
+ - ('pfcand_pt_log', 'np.log(pfcand_pt)')
+ - ('pfcand_e_log', 'np.log(pfcand_e)')
+ - ('pfcand_drrel', 'np.hypot(pfcand_thetarel, pfcand_phirel)')
+ - ('_label_', 'np.argmax(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')
+ - ('_labelcheck_', 'np.sum(np.stack([ak.to_numpy(recojet_isB),ak.to_numpy(recojet_isC),ak.to_numpy(recojet_isUDSG)], axis=1), axis=1)')[0m
+[2026-01-07 01:51:39,673] INFO: [0;37minput_names: ('pf_points', 'pf_features', 'pf_vectors', 'pf_mask')[0m
+[2026-01-07 01:51:39,673] INFO: [0;37minput_dicts:
+ - ('pf_points', ['pfcand_thetarel', 'pfcand_phirel'])
+ - ('pf_features', ['pfcand_pt_log', 'pfcand_e_log', 'pfcand_ptrel_log', 'pfcand_erel_log', 'pfcand_drrel', 'pfcand_thetarel', 'pfcand_phirel', 'pfcand_charge', 'pfcand_dxy', 'pfcand_dz', 'pfcand_Sip2dVal', 'pfcand_Sip2dSig', 'pfcand_Sip3dVal', 'pfcand_Sip3dSig', 'pfcand_JetDistVal', 'pfcand_JetDistSig', 'pfcand_linearSignedIP3D', 'pfcand_linearSignedIP3DSig', 'pfcand_transverseJetDistance', 'pfcand_longitudinalJetDistance', 'pfcand_isChargedHad', 'pfcand_isNeutralHad', 'pfcand_isGamma', 'pfcand_isEl', 'pfcand_isMu', 'pfcand_trackChi2Normalized', 'pfcand_nTrackHits_VDET', 'pfcand_nTrackHits_ITC', 'pfcand_nTrackHits_TPC'])
+ - ('pf_vectors', ['pfcand_px', 'pfcand_py', 'pfcand_pz', 'pfcand_e'])
+ - ('pf_mask', ['pfcand_mask'])[0m
+[2026-01-07 01:51:39,673] INFO: [0;37minput_shapes:
+ - ('pf_points', (-1, 2, 128))
+ - ('pf_features', (-1, 29, 128))
+ - ('pf_vectors', (-1, 4, 128))
+ - ('pf_mask', (-1, 1, 128))[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mpreprocess_params:
+ - ('pfcand_thetarel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_phirel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pt_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_ptrel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_erel_log', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_drrel', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_charge', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dxy', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_dz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip2dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_Sip3dSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistVal', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_JetDistSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3D', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_linearSignedIP3DSig', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_transverseJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_longitudinalJetDistance', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isChargedHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isNeutralHad', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isGamma', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isEl', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_isMu', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_trackChi2Normalized', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_VDET', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_ITC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_nTrackHits_TPC', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_px', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_py', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_pz', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_e', {'length': 128, 'pad_mode': 'wrap', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})
+ - ('pfcand_mask', {'length': 128, 'pad_mode': 'constant', 'center': None, 'scale': 1, 'min': -5, 'max': 5, 'pad_value': 0})[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mlabel_names: ('_label_',)[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mobserver_names: ()[0m
+[2026-01-07 01:51:39,673] INFO: [0;37mmonitor_variables: ()[0m
+[2026-01-07 01:51:39,776] INFO: Network options: {}
+Found following input feature dims: 29
+Found following number of classes: 3
+[2026-01-07 01:51:39,776] INFO: cfg_block: {'embed_dim': 128, 'num_heads': 8, 'ffn_ratio': 4, 'dropout': 0.1, 'attn_dropout': 0.1, 'activation_dropout': 0.1, 'add_bias_kv': False, 'activation': 'gelu', 'scale_fc': True, 'scale_attn': True, 'scale_heads': True, 'scale_resids': True}
+[2026-01-07 01:51:39,776] INFO: cfg_cls_block: {'embed_dim': 128, 'num_heads': 8, 'ffn_ratio': 4, 'dropout': 0, 'attn_dropout': 0, 'activation_dropout': 0, 'add_bias_kv': False, 'activation': 'gelu', 'scale_fc': True, 'scale_attn': True, 'scale_heads': True, 'scale_resids': True}
+Built following model:
+ParticleTransformerWrapper(
+  (model): ParticleTransformer(
+    (trimmer): SequenceTrimmer()
+    (embed): Embed(
+      (input_bn): BatchNorm1d(29, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (embed): Sequential(
+        (0): LayerNorm((29,), eps=1e-05, elementwise_affine=True)
+        (1): Linear(in_features=29, out_features=128, bias=True)
+        (2): GELU(approximate='none')
+        (3): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (4): Linear(in_features=128, out_features=512, bias=True)
+        (5): GELU(approximate='none')
+        (6): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+        (7): Linear(in_features=512, out_features=128, bias=True)
+        (8): GELU(approximate='none')
+      )
+    )
+    (pair_embed): PairEmbed(
+      (embed): Sequential(
+        (0): BatchNorm1d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (1): Conv1d(4, 64, kernel_size=(1,), stride=(1,))
+        (2): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (3): GELU(approximate='none')
+        (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        (5): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (6): GELU(approximate='none')
+        (7): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        (8): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (9): GELU(approximate='none')
+        (10): Conv1d(64, 8, kernel_size=(1,), stride=(1,))
+        (11): BatchNorm1d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (blocks): ModuleList(
+      (0-7): 8 x Block(
+        (pre_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+        )
+        (post_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (pre_fc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (fc1): Linear(in_features=128, out_features=512, bias=True)
+        (act): GELU(approximate='none')
+        (act_dropout): Dropout(p=0.1, inplace=False)
+        (post_fc_norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+        (fc2): Linear(in_features=512, out_features=128, bias=True)
+      )
+    )
+    (cls_blocks): ModuleList(
+      (0-1): 2 x Block(
+        (pre_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+        )
+        (post_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (dropout): Dropout(p=0, inplace=False)
+        (pre_fc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (fc1): Linear(in_features=128, out_features=512, bias=True)
+        (act): GELU(approximate='none')
+        (act_dropout): Dropout(p=0, inplace=False)
+        (post_fc_norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+        (fc2): Linear(in_features=512, out_features=128, bias=True)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (fc): Sequential(
+      (0): Linear(in_features=128, out_features=3, bias=True)
+    )
+  )
+)
+Built following model info:
+{'input_names': ['pf_points', 'pf_features', 'pf_vectors', 'pf_mask'], 'input_shapes': {'pf_points': (1, 2, 128), 'pf_features': (1, 29, 128), 'pf_vectors': (1, 4, 128), 'pf_mask': (1, 1, 128)}, 'output_names': ['softmax'], 'dynamic_axes': {'pf_points': {0: 'N', 2: 'n_pf'}, 'pf_features': {0: 'N', 2: 'n_pf'}, 'pf_vectors': {0: 'N', 2: 'n_pf'}, 'pf_mask': {0: 'N', 2: 'n_pf'}, 'softmax': {0: 'N'}}}
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module SequenceTrimmer is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module LayerNorm is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module GELU is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module Embed is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module PairEmbed is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module NonDynamicallyQuantizableLinear is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module Dropout is treated as a zero-op.[0m
+[2026-01-07 01:51:40,144] INFO: [0;37mWarning: module Block is treated as a zero-op.[0m
+[2026-01-07 01:51:40,145] INFO: [0;37mWarning: module ParticleTransformer is treated as a zero-op.[0m
+[2026-01-07 01:51:40,145] INFO: [0;37mWarning: module ParticleTransformerWrapper is treated as a zero-op.[0m
+/users/tgillin/miniconda3/envs/weaver/lib/python3.10/site-packages/torch/nn/functional.py:6041: UserWarning: Support for mismatched key_padding_mask and attn_mask is deprecated. Use same type for both instead.
+  warnings.warn(
+/users/tgillin/miniconda3/envs/weaver/lib/python3.10/site-packages/torch/nn/functional.py:6041: UserWarning: Support for mismatched key_padding_mask and attn_mask is deprecated. Use same type for both instead.
+  warnings.warn(
+[2026-01-07 01:51:43,332] INFO: [0;37mParticleTransformerWrapper(
+  |2.123 M, 99.021% Params, 341.762 MMac, 100.000% MACs|
+  (model): ParticleTransformer(
+    |2.123 M, 99.021% Params, 341.762 MMac, 100.000% MACs|
+    (trimmer): SequenceTrimmer(|0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+    (embed): Embed(
+      |0.136 M, 6.325% Params, 17.261 MMac, 5.050% MACs|
+      (input_bn): BatchNorm1d(29, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, |0.0 M, 0.003% Params, 7.424 KMac, 0.002% MACs|)
+      (embed): Sequential(
+        |0.136 M, 6.322% Params, 17.253 MMac, 5.048% MACs|
+        (0): LayerNorm((29,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (1): Linear(in_features=29, out_features=128, bias=True, |0.004 M, 0.179% Params, 475.264 KMac, 0.139% MACs|)
+        (2): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (3): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (4): Linear(in_features=128, out_features=512, bias=True, |0.066 M, 3.080% Params, 8.389 MMac, 2.455% MACs|)
+        (5): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (6): LayerNorm((512,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (7): Linear(in_features=512, out_features=128, bias=True, |0.066 M, 3.062% Params, 8.389 MMac, 2.455% MACs|)
+        (8): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+      )
+    )
+    (pair_embed): PairEmbed(
+      |0.01 M, 0.446% Params, 78.993 MMac, 23.114% MACs|
+      (embed): Sequential(
+        |0.01 M, 0.446% Params, 78.993 MMac, 23.114% MACs|
+        (0): BatchNorm1d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, |0.0 M, 0.000% Params, 66.048 KMac, 0.019% MACs|)
+        (1): Conv1d(4, 64, kernel_size=(1,), stride=(1,), |0.0 M, 0.015% Params, 2.642 MMac, 0.773% MACs|)
+        (2): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, |0.0 M, 0.006% Params, 1.057 MMac, 0.309% MACs|)
+        (3): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,), |0.004 M, 0.194% Params, 34.345 MMac, 10.049% MACs|)
+        (5): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, |0.0 M, 0.006% Params, 1.057 MMac, 0.309% MACs|)
+        (6): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (7): Conv1d(64, 64, kernel_size=(1,), stride=(1,), |0.004 M, 0.194% Params, 34.345 MMac, 10.049% MACs|)
+        (8): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, |0.0 M, 0.006% Params, 1.057 MMac, 0.309% MACs|)
+        (9): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (10): Conv1d(64, 8, kernel_size=(1,), stride=(1,), |0.001 M, 0.024% Params, 4.293 MMac, 1.256% MACs|)
+        (11): BatchNorm1d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, |0.0 M, 0.001% Params, 132.096 KMac, 0.039% MACs|)
+      )
+    )
+    (blocks): ModuleList(
+      (0-7): 8 x Block(
+        |0.198 M, 9.223% Params, 29.574 MMac, 8.653% MACs|
+        (pre_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (attn): MultiheadAttention(
+          |0.066 M, 3.080% Params, 12.796 MMac, 3.744% MACs|
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        )
+        (post_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (dropout): Dropout(p=0.1, inplace=False, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (pre_fc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (fc1): Linear(in_features=128, out_features=512, bias=True, |0.066 M, 3.080% Params, 8.389 MMac, 2.455% MACs|)
+        (act): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (act_dropout): Dropout(p=0.1, inplace=False, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (post_fc_norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (fc2): Linear(in_features=512, out_features=128, bias=True, |0.066 M, 3.062% Params, 8.389 MMac, 2.455% MACs|)
+      )
+    )
+    (cls_blocks): ModuleList(
+      (0-1): 2 x Block(
+        |0.198 M, 9.223% Params, 4.459 MMac, 1.305% MACs|
+        (pre_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (attn): MultiheadAttention(
+          |0.066 M, 3.080% Params, 4.327 MMac, 1.266% MACs|
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        )
+        (post_attn_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (dropout): Dropout(p=0, inplace=False, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (pre_fc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (fc1): Linear(in_features=128, out_features=512, bias=True, |0.066 M, 3.080% Params, 66.048 KMac, 0.019% MACs|)
+        (act): GELU(approximate='none', |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (act_dropout): Dropout(p=0, inplace=False, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (post_fc_norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+        (fc2): Linear(in_features=512, out_features=128, bias=True, |0.066 M, 3.062% Params, 65.664 KMac, 0.019% MACs|)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True, |0.0 M, 0.000% Params, 0.0 Mac, 0.000% MACs|)
+    (fc): Sequential(
+      |0.0 M, 0.018% Params, 387.0 Mac, 0.000% MACs|
+      (0): Linear(in_features=128, out_features=3, bias=True, |0.0 M, 0.018% Params, 387.0 Mac, 0.000% MACs|)
+    )
+  )
+)[0m
+[2026-01-07 01:51:43,337] INFO: Computational complexity:       341.76 MMac
+[2026-01-07 01:51:43,337] INFO: Number of parameters:           2.14 M  
+[2026-01-07 01:51:43,337] WARNING: Loss function not defined in /oscar/data/lgouskos/training_runs/output_part/model_config.py. Will use `torch.nn.CrossEntropyLoss()` by default.
+[2026-01-07 01:51:43,349] INFO: Optimizer options: {}
+[2026-01-07 01:51:46,903] INFO: --------------------------------------------------
+[2026-01-07 01:51:46,904] INFO: Epoch #0 training
+0it [00:00, ?it/s]=== Restarting DataIter train, seed=None ===
+[2026-01-07 01:51:46,908] INFO: Restarted DataIter train, load_range=(0.0, 0.8), file_list:
+{
+  "": [
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_0_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_10_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_11_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_12_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_13_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_14_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_15_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_16_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_17_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_18_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_19_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_1_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_20_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_21_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_22_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_23_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_24_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_25_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_26_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_27_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_28_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_29_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_2_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_30_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_31_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_32_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_33_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_34_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_35_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_36_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_37_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_38_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_39_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_3_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_40_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_41_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_42_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_43_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_44_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_45_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_46_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_47_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_48_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_49_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_4_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_50_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_51_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_52_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_53_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_54_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_55_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_56_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_57_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_58_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_59_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_5_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_60_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_61_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_62_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_63_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_64_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_65_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_66_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_67_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_68_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_69_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_6_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_7_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_8_train.root",
+    "/tmp/tmp__rvz4i1/HEP/data/share/aleph/ntuples/jetlevel/mc/output_qqb_9_train.root"
+  ]
+}
+slurmstepd: error: *** JOB 15252600 ON gpu1401 CANCELLED AT 2026-01-07T01:51:48 ***

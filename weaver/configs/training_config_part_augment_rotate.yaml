@@ -13,7 +13,7 @@ steps_per_epoch: 300
 batch_size: 512
 
 # Output settings
-output_dir: /oscar/data/lgouskos/training_runs/output_part
+output_dir: /oscar/data/lgouskos/training_runs/output_part_augmented_rotate
 model_prefix_name: network
 test_output: output.root
 
@@ -23,24 +23,20 @@ copy_inputs: true
 
 # Data Augmentation Settings  
 augment: true
-aug_rotation: false
+aug_rotation: true
 aug_reflection: false
-aug_dropout: 0.0
+aug_dropout: 0
 
 # Weights & Biases logging
 use_wandb: true
 wandb_project: jet-tagging
 wandb_entity: aleph_project
-wandb_name: part_standardized
-wandb_tags: ["part", "standardized"]
-wandb_notes: "Baseline training with standardized data"
+wandb_name: part_standardized_augmented_rotate
+wandb_tags: ["part", "standardized", "augmented", "no-dropout", "no-reflect"]
+wandb_notes: "Baseline training with standardized data and augmentation without dropout"
 
 # Compute settings
 gpus: '0'  # GPU IDs (comma-separated) or empty string for CPU
-
-# torch.compile settings (PyTorch 2.0+, can speed up training significantly)
-compile: true  
-compile_mode: default  # Options: default, reduce-overhead, max-autotune
 
 # Job submission settings
 runmode: slurm  # local, condor, or slurm

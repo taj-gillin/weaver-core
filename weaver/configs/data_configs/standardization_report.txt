@@ -4,144 +4,144 @@ Standardization Parameters Report
 
 Data source: samples file /oscar/home/tgillin/files/weaver-core/weaver/configs/samplelists/oscar/samples_training.yaml
 Training files: 70
-Events used: 194548
+Events used: 125562
 Sample fraction: 10.0%
 
 Standardization Parameters:
 ------------------------------------------------------------
 
-pfcand_btagJetDistSig:
-  Dummy values (-9): 1750118 out of 3534355 total
-  Non-dummy count: 1784237
+pfcand_JetDistSig:
+  Dummy values (-9): 1107633 out of 2326686 total
+  Non-dummy count: 1219053
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.000926
-  Scale: 0.573887
-  Mean: -0.024120, Std: 13.562464
-  Range: [-1540.300293, 1026.329224]
-  16th percentile: -1.740767
-  84th percentile: 1.743430
+  Center (median): 0.000387
+  Scale: 0.478945
+  Mean: -0.034583, Std: 15.474771
+  Range: [-1540.300293, 929.813232]
+  16th percentile: -2.084363
+  84th percentile: 2.088309
 
-pfcand_btagJetDistVal:
-  Dummy values (-9): 1750119 out of 3534355 total
-  Non-dummy count: 1784236
+pfcand_JetDistVal:
+  Dummy values (-9): 1107634 out of 2326686 total
+  Non-dummy count: 1219052
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.000028
-  Scale: 17.293118
-  Mean: -0.009586, Std: 5.131243
+  Center (median): 0.000008
+  Scale: 22.986134
+  Mean: -0.014823, Std: 5.812876
   Range: [-276.769440, 266.956635]
-  16th percentile: -0.057798
-  84th percentile: 0.057750
+  16th percentile: -0.043460
+  84th percentile: 0.043512
 
-pfcand_btagSip2dSig:
-  Dummy values (-9): 1750121 out of 3534355 total
-  Non-dummy count: 1784234
+pfcand_Sip2dSig:
+  Dummy values (-9): 1107635 out of 2326686 total
+  Non-dummy count: 1219051
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.232643
-  Scale: 0.280002
-  Mean: 2.336076, Std: 22.177774
+  Center (median): 0.272170
+  Scale: 0.247674
+  Mean: 2.622284, Std: 23.598469
   Range: [-1440.710571, 1840.293457]
-  16th percentile: -2.092421
-  84th percentile: 3.804050
+  16th percentile: -2.240378
+  84th percentile: 4.309730
 
-pfcand_btagSip2dVal:
-  Dummy values (-9): 1750119 out of 3534355 total
-  Non-dummy count: 1784236
+pfcand_Sip2dVal:
+  Dummy values (-9): 1107634 out of 2326686 total
+  Non-dummy count: 1219052
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.002751
-  Scale: 13.317985
-  Mean: 0.119430, Std: 2.026551
+  Center (median): 0.002632
+  Scale: 15.057492
+  Mean: 0.123986, Std: 2.108536
   Range: [-69.567230, 112.799545]
-  16th percentile: -0.033964
-  84th percentile: 0.077838
+  16th percentile: -0.027247
+  84th percentile: 0.069044
 
-pfcand_btagSip3dSig:
-  Dummy values (-9): 1750120 out of 3534355 total
-  Non-dummy count: 1784235
+pfcand_Sip3dSig:
+  Dummy values (-9): 1107635 out of 2326686 total
+  Non-dummy count: 1219051
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.247855
-  Scale: 0.254938
-  Mean: 1.151162, Std: 22.752882
+  Center (median): 0.350038
+  Scale: 0.229507
+  Mean: 1.261879, Std: 24.257414
   Range: [-2234.578613, 2256.058838]
-  16th percentile: -3.254711
-  84th percentile: 4.170372
+  16th percentile: -3.620596
+  84th percentile: 4.707206
 
-pfcand_btagSip3dVal:
-  Dummy values (-9): 1750119 out of 3534355 total
-  Non-dummy count: 1784236
+pfcand_Sip3dVal:
+  Dummy values (-9): 1107634 out of 2326686 total
+  Non-dummy count: 1219052
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.006151
-  Scale: 5.800664
-  Mean: 0.010119, Std: 8.182907
+  Center (median): 0.006347
+  Scale: 9.153774
+  Mean: 0.010158, Std: 8.373564
   Range: [-342.154358, 291.502625]
-  16th percentile: -0.118658
-  84th percentile: 0.178545
+  16th percentile: -0.071830
+  84th percentile: 0.115592
 
 pfcand_charge:
   Center (median): 0.000000
   Scale: 1.000000
-  Mean: 0.004712, Std: 0.710496
+  Mean: 0.004952, Std: 0.723823
   Range: [-1.000000, 1.000000]
   16th percentile: -1.000000
   84th percentile: 1.000000
 
 pfcand_drrel:
-  Center (median): 1.667746
-  Scale: 1.001039
-  Mean: 1.681457, Std: 0.843886
-  Range: [0.002573, 3.583337]
-  16th percentile: 0.720548
-  84th percentile: 2.666708
+  Center (median): 1.668400
+  Scale: 0.999241
+  Mean: 1.681009, Std: 0.845381
+  Range: [0.005333, 3.551027]
+  16th percentile: 0.715348
+  84th percentile: 2.669159
 
 pfcand_dxy:
-  Dummy values (-9): 1750119 out of 3534355 total
-  Non-dummy count: 1784236
+  Dummy values (-9): 1107634 out of 2326686 total
+  Non-dummy count: 1219052
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.000053
-  Scale: 19.495525
-  Mean: -0.005578, Std: 2.030060
+  Center (median): 0.000062
+  Scale: 23.415547
+  Mean: -0.006435, Std: 2.112168
   Range: [-112.799545, 96.244804]
-  16th percentile: -0.051241
-  84th percentile: 0.050627
+  16th percentile: -0.042645
+  84th percentile: 0.042416
 
 pfcand_dz:
-  Dummy values (-9): 1750118 out of 3534355 total
-  Non-dummy count: 1784237
+  Dummy values (-9): 1107633 out of 2326686 total
+  Non-dummy count: 1219053
   NOTE: Statistics computed excluding dummy values
-  Center (median): 0.000001
-  Scale: 10.923909
-  Mean: -0.007554, Std: 7.927094
-  Range: [-342.125824, 320.293701]
-  16th percentile: -0.091542
-  84th percentile: 0.091011
+  Center (median): 0.000062
+  Scale: 17.327732
+  Mean: 0.000332, Std: 8.102798
+  Range: [-342.125824, 313.369415]
+  16th percentile: -0.057649
+  84th percentile: 0.057706
 
 pfcand_e:
-  Center (median): 1.183100
-  Scale: 0.375460
-  Mean: 2.343224, Std: 3.296699
-  Range: [0.059607, 78.011345]
-  16th percentile: 0.490307
-  84th percentile: 3.846502
+  Center (median): 1.198541
+  Scale: 0.370767
+  Mean: 2.363296, Std: 3.305270
+  Range: [0.059607, 70.466064]
+  16th percentile: 0.490458
+  84th percentile: 3.895652
 
 pfcand_e_log:
-  Center (median): 0.168138
-  Scale: 0.848158
-  Mean: 0.301541, Std: 0.983136
-  Range: [-2.819982, 4.356854]
-  16th percentile: -0.712723
-  84th percentile: 1.347164
+  Center (median): 0.181105
+  Scale: 0.848352
+  Mean: 0.309500, Std: 0.987055
+  Range: [-2.819982, 4.255131]
+  16th percentile: -0.712416
+  84th percentile: 1.359861
 
 pfcand_erel_log:
-  Center (median): -1.554279
-  Scale: 1.956282
-  Mean: -1.499461, Std: 0.430241
+  Center (median): -1.561910
+  Scale: 1.949118
+  Mean: -1.508044, Std: 0.431489
   Range: [-2.893920, 0.000000]
-  16th percentile: -1.941350
-  84th percentile: -1.043105
+  16th percentile: -1.953045
+  84th percentile: -1.048858
 
 pfcand_isChargedHad:
   Center (median): 0.000000
   Scale: 1.000000
-  Mean: 0.455854, Std: 0.498047
+  Mean: 0.472929, Std: 0.499267
   Range: [0.000000, 1.000000]
   16th percentile: 0.000000
   84th percentile: 1.000000
@@ -149,7 +149,7 @@ pfcand_isChargedHad:
 pfcand_isEl:
   Center (median): 0.000000
   Scale: 1.000000
-  Mean: 0.015156, Std: 0.122174
+  Mean: 0.015507, Std: 0.123560
   Range: [0.000000, 1.000000]
   16th percentile: 0.000000
   84th percentile: 0.000000
@@ -157,7 +157,7 @@ pfcand_isEl:
 pfcand_isGamma:
   Center (median): 0.000000
   Scale: 1.000000
-  Mean: 0.308885, Std: 0.462033
+  Mean: 0.317742, Std: 0.465599
   Range: [0.000000, 1.000000]
   16th percentile: 0.000000
   84th percentile: 1.000000
@@ -165,7 +165,7 @@ pfcand_isGamma:
 pfcand_isMu:
   Center (median): 0.000000
   Scale: 1.000000
-  Mean: 0.005374, Std: 0.073111
+  Mean: 0.005167, Std: 0.071699
   Range: [0.000000, 1.000000]
   16th percentile: 0.000000
   84th percentile: 0.000000
@@ -173,10 +173,37 @@ pfcand_isMu:
 pfcand_isNeutralHad:
   Center (median): 0.000000
   Scale: 1.000000
-  Mean: 0.174011, Std: 0.379119
+  Mean: 0.155795, Std: 0.362661
   Range: [0.000000, 1.000000]
   16th percentile: 0.000000
-  84th percentile: 1.000000
+  84th percentile: 0.000000
+
+pfcand_linearSignedIP3D:
+  Center (median): -0.000000
+  Scale: 24.624408
+  Mean: 0.237072, Std: 15.778522
+  Range: [-8410.223633, 8935.500977]
+  16th percentile: -0.018250
+  84th percentile: 0.040610
+
+pfcand_linearSignedIP3DSig:
+  Dummy values (-9): 2 out of 2326686 total
+  Non-dummy count: 2326684
+  NOTE: Statistics computed excluding dummy values
+  Center (median): 0.000000
+  Scale: 0.280499
+  Mean: 2.744879, Std: 27.664982
+  Range: [-2284.412354, 4038.274902]
+  16th percentile: -1.584439
+  84th percentile: 3.565073
+
+pfcand_longitudinalJetDistance:
+  Center (median): 0.285977
+  Scale: 1.270903
+  Mean: 1.372600, Std: 9.854025
+  Range: [0.000000, 5276.257324]
+  16th percentile: 0.041915
+  84th percentile: 1.072820
 
 pfcand_mask:
   Center (median): 1.000000
@@ -186,58 +213,98 @@ pfcand_mask:
   16th percentile: 1.000000
   84th percentile: 1.000000
 
+pfcand_nTrackHits_ITC:
+  Center (median): 0.000000
+  Scale: 0.142857
+  Mean: 2.122256, Std: 3.537226
+  Range: [-1.000000, 8.000000]
+  16th percentile: -1.000000
+  84th percentile: 7.000000
+
+pfcand_nTrackHits_TPC:
+  Center (median): 6.000000
+  Scale: 0.071429
+  Mean: 8.169540, Std: 9.329359
+  Range: [-1.000000, 21.000000]
+  16th percentile: -1.000000
+  84th percentile: 20.000000
+
+pfcand_nTrackHits_VDET:
+  Center (median): 0.000000
+  Scale: 0.500000
+  Mean: 0.335570, Std: 1.375999
+  Range: [-1.000000, 2.000000]
+  16th percentile: -1.000000
+  84th percentile: 2.000000
+
 pfcand_phirel:
-  Center (median): 0.003711
-  Scale: 0.473361
-  Mean: 0.000413, Std: 1.804145
-  Range: [-3.141592, 3.141593]
-  16th percentile: -2.108842
-  84th percentile: 2.107370
+  Center (median): 0.004153
+  Scale: 0.473061
+  Mean: 0.000697, Std: 1.804623
+  Range: [-3.141589, 3.141591]
+  16th percentile: -2.109740
+  84th percentile: 2.109260
 
 pfcand_pt_log:
-  Center (median): -0.133056
-  Scale: 0.827791
-  Mean: -0.031376, Std: 1.066809
-  Range: [-4.922609, 4.246387]
-  16th percentile: -1.057418
-  84th percentile: 1.074978
+  Center (median): 0.025902
+  Scale: 0.825077
+  Mean: 0.132180, Std: 1.050223
+  Range: [-4.828314, 4.246387]
+  16th percentile: -0.921761
+  84th percentile: 1.237910
 
 pfcand_ptrel_log:
-  Center (median): -1.498228
-  Scale: 1.958573
-  Mean: -1.462626, Std: 0.454764
-  Range: [-3.705369, 1.202730]
-  16th percentile: -1.922490
-  84th percentile: -0.987653
+  Center (median): -1.543984
+  Scale: 1.923338
+  Mean: -1.502267, Std: 0.453655
+  Range: [-3.705369, 0.006122]
+  16th percentile: -1.960255
+  84th percentile: -1.024055
 
 pfcand_px:
-  Center (median): 0.001000
-  Scale: 1.097695
-  Mean: 0.000767, Std: 2.267242
+  Center (median): 0.000000
+  Scale: 0.933707
+  Mean: 0.000577, Std: 2.580445
   Range: [-45.078999, 69.555000]
-  16th percentile: -0.908000
-  84th percentile: 0.912000
+  16th percentile: -1.069000
+  84th percentile: 1.071000
 
 pfcand_py:
-  Center (median): 0.001000
-  Scale: 1.098901
-  Mean: 0.001481, Std: 2.262216
+  Center (median): 0.003000
+  Scale: 0.933707
+  Mean: 0.003184, Std: 2.574998
   Range: [-61.569000, 58.417000]
-  16th percentile: -0.909000
-  84th percentile: 0.910000
+  16th percentile: -1.067000
+  84th percentile: 1.074000
 
 pfcand_pz:
   Center (median): -0.001000
-  Scale: 0.990099
-  Mean: -0.000555, Std: 2.467591
-  Range: [-46.877998, 63.977001]
-  16th percentile: -1.011000
-  84th percentile: 1.009000
+  Scale: 1.287001
+  Mean: -0.001633, Std: 1.791138
+  Range: [-32.858002, 30.629999]
+  16th percentile: -0.778000
+  84th percentile: 0.774000
 
 pfcand_thetarel:
-  Center (median): 0.264867
-  Scale: 1.968070
-  Mean: 0.394597, Std: 0.358877
-  Range: [0.000000, 1.989006]
-  16th percentile: 0.083989
-  84th percentile: 0.772979
+  Center (median): 0.268618
+  Scale: 1.993733
+  Mean: 0.395495, Std: 0.356901
+  Range: [0.000000, 1.883636]
+  16th percentile: 0.084860
+  84th percentile: 0.770189
+
+pfcand_trackChi2Normalized:
+  Center (median): 0.500000
+  Scale: 0.666667
+  Mean: 0.039959, Std: 2.183523
+  Range: [-1.000000, 2229.500000]
+  16th percentile: -1.000000
+  84th percentile: 1.100000
+
+pfcand_transverseJetDistance:
+  Center (median): 0.001479
+  Scale: 21.874747
+  Mean: 0.347317, Std: 14.418914
+  Range: [0.000000, 8813.604492]
+  16th percentile: 0.000000
+  84th percentile: 0.047194
