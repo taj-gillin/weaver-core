@@ -2,7 +2,7 @@
 #SBATCH --job-name=weaver_interpret
 #SBATCH --output=logs/weaver_interpret_%j.out
 #SBATCH --error=logs/weaver_interpret_%j.err
-#SBATCH --time=12:00:00
+#SBATCH --time=4:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G

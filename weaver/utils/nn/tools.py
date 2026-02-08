@@ -710,6 +710,7 @@ class WandbHelper(object):
     def log_roc_curves(self, labels, scores, class_names, epoch, log_score_distributions=True):
         """
         Generate and log ROC curves and score distributions to wandb.
+        Uses shared plotting functions from weaver.evaluation.plot_roc_multi.
         
         Args:
             labels: 1D array of true class labels (integers 0, 1, 2, ...)
@@ -719,86 +720,17 @@ class WandbHelper(object):
             log_score_distributions: Whether to also log score distributions
         """
         import matplotlib.pyplot as plt
-        from sklearn.metrics import roc_auc_score
+        from weaver.evaluation.plot_roc_multi import (
+            generate_roc_from_arrays, 
+            generate_scores_from_arrays
+        )
         
-        n_classes = len(class_names)
+        title_suffix = f'(Epoch {epoch})'
         
-        # Create masks for each class
-        class_masks = {i: (labels == i) for i in range(n_classes)}
-        
-        # Generate ROC curves for all pairwise combinations
-        fig_roc, ax_roc = plt.subplots(figsize=(8, 6))
-        fig_roc_log, ax_roc_log = plt.subplots(figsize=(8, 6))
-        
-        # Count pairs for colormap
-        n_pairs = n_classes * (n_classes - 1) // 2
-        cmap = plt.get_cmap('cool', max(n_pairs, 1))
-        cidx = 0
-        
-        for i in range(n_classes):
-            for j in range(i + 1, n_classes):
-                # Get samples belonging to class i or class j
-                mask = class_masks[i] | class_masks[j]
-                if mask.sum() == 0:
-                    continue
-                
-                # Get scores for these two classes
-                scores_i = scores[mask, i]
-                scores_j = scores[mask, j]
-                binary_labels = labels[mask]
-                
-                # Compute discriminant score: P(i) / (P(i) + P(j))
-                discriminant = scores_i / (scores_i + scores_j + 1e-10)
-                
-                # Get discriminant for each class
-                disc_class_i = discriminant[binary_labels == i]
-                disc_class_j = discriminant[binary_labels == j]
-                
-                if len(disc_class_i) == 0 or len(disc_class_j) == 0:
-                    continue
-                
-                # Calculate efficiencies
-                thresholds = np.linspace(0, 1, 100)
-                eff_i = np.array([np.mean(disc_class_i > t) for t in thresholds])
-                eff_j = np.array([np.mean(disc_class_j > t) for t in thresholds])
-                
-                # Calculate AUC
-                binary_target = (binary_labels == i).astype(int)
-                try:
-                    auc = roc_auc_score(binary_target, discriminant)
-                except:
-                    auc = 0.5
-                
-                # Plot ROC curve
-                label = f'{class_names[i]} vs {class_names[j]} (AUC: {auc:.3f})'
-                ax_roc.plot(eff_j, eff_i, color=cmap(cidx), linewidth=2, label=label)
-                ax_roc_log.plot(eff_j, eff_i, color=cmap(cidx), linewidth=2, label=label)
-                cidx += 1
-        
-        # Diagonal reference line
-        ax_roc.plot([0, 1], [0, 1], 'k--', linewidth=1.5, alpha=0.7)
-        ax_roc_log.plot([0, 1], [0, 1], 'k--', linewidth=1.5, alpha=0.7)
-        
-        # Configure ROC plot
-        ax_roc.set_xlabel('Background pass-through', fontsize=12)
-        ax_roc.set_ylabel('Signal efficiency', fontsize=12)
-        ax_roc.set_title(f'ROC Curves (Epoch {epoch})', fontsize=14)
-        ax_roc.legend(loc='lower right', fontsize=9)
-        ax_roc.grid(True, alpha=0.3)
-        ax_roc.set_xlim(0, 1)
-        ax_roc.set_ylim(0, 1)
-        fig_roc.tight_layout()
-        
-        # Configure log-scale ROC plot
-        ax_roc_log.set_xlabel('Background pass-through', fontsize=12)
-        ax_roc_log.set_ylabel('Signal efficiency', fontsize=12)
-        ax_roc_log.set_title(f'ROC Curves - Log Scale (Epoch {epoch})', fontsize=14)
-        ax_roc_log.legend(loc='lower right', fontsize=9)
-        ax_roc_log.grid(True, which='both', alpha=0.3)
-        ax_roc_log.set_xscale('log')
-        ax_roc_log.set_xlim(1e-4, 1)
-        ax_roc_log.set_ylim(0, 1)
-        fig_roc_log.tight_layout()
+        # Generate ROC curves using shared function
+        fig_roc, fig_roc_log, _ = generate_roc_from_arrays(
+            labels, scores, class_names, title_suffix=title_suffix
+        )
         
         # Log ROC figures
         self.log_figure('val/roc_curves', fig_roc, step=epoch)
@@ -806,26 +738,12 @@ class WandbHelper(object):
         
         # Log score distributions if requested
         if log_score_distributions:
-            for score_idx, score_name in enumerate(class_names):
-                fig_score, ax_score = plt.subplots(figsize=(8, 6))
-                
-                bins = np.linspace(0, 1, 41)
-                for class_idx, class_name in enumerate(class_names):
-                    class_scores = scores[class_masks[class_idx], score_idx]
-                    if len(class_scores) > 0:
-                        hist, _ = np.histogram(class_scores, bins=bins)
-                        norm = np.sum(hist * np.diff(bins))
-                        if norm > 0:
-                            ax_score.stairs(hist / norm, edges=bins, 
-                                          label=class_name, linewidth=2)
-                
-                ax_score.set_xlabel(f'Score ({score_name})', fontsize=12)
-                ax_score.set_ylabel('Normalized counts', fontsize=12)
-                ax_score.set_title(f'Score Distribution: {score_name} (Epoch {epoch})', fontsize=14)
-                ax_score.legend(fontsize=10)
-                ax_score.set_xlim(0, 1)
-                fig_score.tight_layout()
-                
+            score_figures = generate_scores_from_arrays(
+                labels, scores, class_names, title_suffix=title_suffix
+            )
+            
+            for score_name, (fig_linear, fig_log) in score_figures.items():
                 # Sanitize name for wandb key
                 safe_name = score_name.replace('recojet_is', '').lower()
-                self.log_figure(f'val/score_dist_{safe_name}', fig_score, step=epoch)
+                self.log_figure(f'val/score_dist_{safe_name}', fig_linear, step=epoch)
+                self.log_figure(f'val/score_dist_{safe_name}_log', fig_log, step=epoch)

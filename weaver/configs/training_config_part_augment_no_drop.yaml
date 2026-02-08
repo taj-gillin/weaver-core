@@ -4,8 +4,22 @@
 # Paths to config files (relative to this config file or absolute paths)
 data_config: data_configs/data_config_part_standardized.yaml
 model_config: model_config_part.py
-sample_train: samplelists/oscar/samples_training.yaml
-sample_test: samplelists/oscar/samples_testing.yaml
+
+# ============================================================================
+# DATA CONFIGURATION - Choose ONE of the two options below:
+# ============================================================================
+
+# OPTION 1: Automatic train/test split 
+# Define all data files and let the script split them automatically
+data_files:
+  - /HEP/data/share/aleph/ntuples-fitpv-withbs3/jetlevel/mc/output_qqb_*.root
+train_test_split: 0.5    
+split_seed: 42           # Optional: for reproducible splits
+
+# OPTION 2: Separate sample files
+# Use pre-defined sample lists for train and test
+# sample_train: samplelists/oscar/samples_training.yaml
+# sample_test: samplelists/oscar/samples_testing.yaml
 
 # Training hyperparameters
 num_epochs: 100
@@ -18,7 +32,7 @@ model_prefix_name: network
 test_output: output.root
 
 # Data loading settings
-num_workers: 0
+num_workers: 6  # Match slurm_cpus for parallel data loading
 copy_inputs: true
 
 # Data Augmentation Settings  
@@ -42,7 +56,7 @@ gpus: '0'  # GPU IDs (comma-separated) or empty string for CPU
 runmode: slurm  # local, condor, or slurm
 
 # Slurm-specific settings
-slurm_memory: 16G
+slurm_memory: 32G  # Increased for parallel data loading workers
 slurm_time: 09:00:00
 slurm_cpus: 6
 conda_activate: source /users/tgillin/miniconda3/etc/profile.d/conda.sh

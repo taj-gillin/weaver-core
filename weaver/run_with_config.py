@@ -9,12 +9,58 @@ import sys
 import argparse
 import shutil
 import yaml
+import glob
+import random
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 weavercoredir = os.path.abspath(os.path.join(thisdir, '../'))
 sys.path.append(weavercoredir)
 import weaver.utils.jobsubmission.condortools as ct
 import weaver.utils.jobsubmission.slurmtools as st
+
+
+def expand_file_patterns(patterns):
+    """Expand glob patterns to get list of actual files."""
+    all_files = []
+    for pattern in patterns:
+        matches = sorted(glob.glob(pattern))
+        if not matches:
+            print(f'Warning: No files matched pattern: {pattern}')
+        all_files.extend(matches)
+    return all_files
+
+
+def split_files(files, train_ratio, seed=None):
+    """Split files into train and test sets based on ratio.
+    
+    Args:
+        files: List of file paths
+        train_ratio: Fraction of files to use for training (0.0 to 1.0)
+        seed: Random seed for reproducibility (optional)
+    
+    Returns:
+        Tuple of (train_files, test_files)
+    """
+    if seed is not None:
+        random.seed(seed)
+    
+    # Shuffle a copy of the list
+    shuffled = files.copy()
+    random.shuffle(shuffled)
+    
+    # Split based on ratio
+    split_idx = int(len(shuffled) * train_ratio)
+    train_files = shuffled[:split_idx]
+    test_files = shuffled[split_idx:]
+    
+    return train_files, test_files
+
+
+def write_sample_list(files, output_path):
+    """Write a list of files to a sample list YAML file."""
+    with open(output_path, 'w') as f:
+        for file_path in files:
+            f.write(f'- {file_path}\n')
 
 
 def load_config(config_path):
@@ -53,8 +99,20 @@ def load_config(config_path):
     # Resolve paths for config files
     config['data_config'] = resolve_path(config['data_config'])
     config['model_config'] = resolve_path(config['model_config'])
-    config['sample_train'] = resolve_path(config['sample_train'])
-    config['sample_test'] = resolve_path(config['sample_test'])
+    
+    # Check if using new data_files + train_test_split format or old sample_train/sample_test format
+    if 'data_files' in config and 'train_test_split' in config:
+        # New format: data_files with train/test split ratio
+        config['use_split_mode'] = True
+        # data_files can be a single pattern or a list
+        data_files = config['data_files']
+        if isinstance(data_files, str):
+            config['data_files'] = [data_files]
+    else:
+        # Old format: separate sample_train and sample_test files
+        config['use_split_mode'] = False
+        config['sample_train'] = resolve_path(config['sample_train'])
+        config['sample_test'] = resolve_path(config['sample_test'])
     
     return config
 
@@ -140,8 +198,9 @@ def main():
     # Extract config paths
     data_config = config['data_config']
     model_config = config['model_config']
-    sample_config_train = config['sample_train']
-    sample_config_test = config['sample_test']
+    
+    # Handle sample configs based on mode
+    use_split_mode = config.get('use_split_mode', False)
     
     # Auto-generate output directory name if not provided or None
     output_dir_config = config.get('output_dir')
@@ -153,8 +212,14 @@ def main():
     else:
         outputdir = os.path.abspath(output_dir_config)
     
-    # Check if all config files exist
-    files_to_check = [data_config, model_config, sample_config_train, sample_config_test]
+    # Check if config files exist
+    files_to_check = [data_config, model_config]
+    if not use_split_mode:
+        # Old format: check sample config files exist
+        sample_config_train = config['sample_train']
+        sample_config_test = config['sample_test']
+        files_to_check.extend([sample_config_train, sample_config_test])
+    
     for f in files_to_check:
         if not os.path.exists(f):
             raise FileNotFoundError(f'Config file does not exist: {f}')
@@ -201,13 +266,49 @@ def main():
     shutil.copy2(model_config, this_model_config)
     print(f'Copied model config to: {this_model_config}')
     
+    # Handle sample configs based on mode
     this_sample_config_train = os.path.join(outputdir, 'sample_config_train.yaml')
-    shutil.copy2(sample_config_train, this_sample_config_train)
-    print(f'Copied training sample list to: {this_sample_config_train}')
-    
     this_sample_config_test = os.path.join(outputdir, 'sample_config_test.yaml')
-    shutil.copy2(sample_config_test, this_sample_config_test)
-    print(f'Copied testing sample list to: {this_sample_config_test}')
+    
+    if use_split_mode:
+        # New format: expand patterns, split files, and generate sample lists
+        data_files = config['data_files']
+        train_ratio = config['train_test_split']
+        split_seed = config.get('split_seed', None)
+        
+        # Expand glob patterns to get all files
+        all_files = expand_file_patterns(data_files)
+        
+        if len(all_files) == 0:
+            raise FileNotFoundError(f'No files found matching patterns: {data_files}')
+        
+        print(f'Found {len(all_files)} files matching data patterns')
+        
+        # Split into train and test sets
+        train_files, test_files = split_files(all_files, train_ratio, seed=split_seed)
+        
+        print(f'Split into {len(train_files)} training files ({train_ratio*100:.0f}%) '
+              f'and {len(test_files)} test files ({(1-train_ratio)*100:.0f}%)')
+        
+        if split_seed is not None:
+            print(f'Using random seed: {split_seed}')
+        
+        # Write generated sample lists
+        write_sample_list(train_files, this_sample_config_train)
+        print(f'Generated training sample list: {this_sample_config_train}')
+        
+        write_sample_list(test_files, this_sample_config_test)
+        print(f'Generated testing sample list: {this_sample_config_test}')
+    else:
+        # Old format: copy existing sample config files
+        sample_config_train = config['sample_train']
+        sample_config_test = config['sample_test']
+        
+        shutil.copy2(sample_config_train, this_sample_config_train)
+        print(f'Copied training sample list to: {this_sample_config_train}')
+        
+        shutil.copy2(sample_config_test, this_sample_config_test)
+        print(f'Copied testing sample list to: {this_sample_config_test}')
     
     # Also copy the training config file itself
     training_config_copy = os.path.join(outputdir, 'training_config.yaml')

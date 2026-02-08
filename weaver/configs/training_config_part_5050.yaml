@@ -13,7 +13,7 @@ model_config: model_config_part.py
 # Define all data files and let the script split them automatically
 data_files:
   - /HEP/data/share/aleph/ntuples-fitpv-withbs3/jetlevel/mc/output_qqb_*.root
-train_test_split: 0.8    
+train_test_split: 0.5 
 split_seed: 42           # Optional: for reproducible splits
 
 # OPTION 2: Separate sample files 
@@ -27,7 +27,7 @@ steps_per_epoch: 300
 batch_size: 512
 
 # Output settings
-output_dir: /oscar/data/lgouskos/training_runs/output_part
+output_dir: /oscar/data/lgouskos/training_runs/output_part_5050
 model_prefix_name: network
 test_output: output.root
 
@@ -45,7 +45,7 @@ aug_dropout: 0.0
 use_wandb: true
 wandb_project: jet-tagging
 wandb_entity: aleph_project
-wandb_name: part_standardized
+wandb_name: part_standardized_5050
 wandb_tags: ["part", "standardized"]
 wandb_notes: "Baseline training with standardized data"
 
