@@ -1,0 +1,68 @@
+# Training configuration for ParticleTransformerTagger with secondary vertex data
+# This config file specifies all the configs and settings needed for training
+
+# Paths to config files (relative to this config file or absolute paths)
+data_config: data_configs/data_config_parttagger.yaml
+model_config: model_config_parttagger.py
+
+# ============================================================================
+# DATA CONFIGURATION
+# ============================================================================
+
+# Data files from the new ntuples-withsvloose dataset
+data_files:
+  - /HEP/data/share/aleph/ntuples-withsvloose/jetlevel/mc/output_qqb_*.root
+train_test_split: 0.8    
+split_seed: 42           # Optional: for reproducible splits
+
+# Training hyperparameters
+num_epochs: 100
+steps_per_epoch: 300
+batch_size: 512
+
+# Output settings
+output_dir: /oscar/data/lgouskos/training_runs/output_parttagger
+model_prefix_name: network
+test_output: output.root
+
+# Data loading settings
+num_workers: 4  # Reduced from 8 to avoid memory duplication with copy_inputs
+copy_inputs: true
+
+# Data Augmentation Settings  
+augment: false
+aug_rotation: false
+aug_reflection: false
+aug_dropout: 0.0
+
+# Weights & Biases logging
+use_wandb: true
+wandb_project: jet-tagging
+wandb_entity: aleph_project
+wandb_name: parttagger
+wandb_tags: ["parttagger", "sv"]
+wandb_notes: "ParticleTransformerTagger with secondary vertex data"
+
+# Compute settings
+gpus: '0'  # GPU IDs (comma-separated) or empty string for CPU
+
+# torch.compile settings (PyTorch 2.0+, can speed up training significantly)
+compile: true  
+compile_mode: default  # Options: default, reduce-overhead, max-autotune
+
+# Job submission settings
+runmode: slurm  # local, condor, or slurm
+
+# Slurm-specific settings
+slurm_memory: 32G  # Increased from 16G to handle larger memory requirements
+slurm_time: 09:00:00
+slurm_cpus: 6
+conda_activate: source /users/tgillin/miniconda3/etc/profile.d/conda.sh
+conda_env: weaver
+
+# Condor-specific settings
+condor_conda_activate: source /eos/user/l/llambrec/miniforge3/bin/activate
+condor_jobflavour: workday
+
+# Advanced options
+keep_output_dir: false

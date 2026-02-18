@@ -309,16 +309,35 @@ def main():
     averaged_results = average_roc_curves(all_roc_data)
     
     # Print summary
+    fpr_threshold = 0.2
     print('\nAveraged Results:')
     summary = {}
     for pair_key, data in averaged_results.items():
+        # Find signal efficiency at FPR threshold
+        fpr = data['fpr']
+        tpr_mean = data['tpr_mean']
+        tpr_std = data['tpr_std']
+
+        # Interpolate to get TPR at exact FPR threshold
+        interp_func_mean = interpolate.interp1d(
+            fpr, tpr_mean, kind='linear', bounds_error=False, fill_value=(0, 1)
+        )
+        interp_func_std = interpolate.interp1d(
+            fpr, tpr_std, kind='linear', bounds_error=False, fill_value=(0, 0)
+        )
+        tpr_at_threshold = float(interp_func_mean(fpr_threshold))
+        tpr_std_at_threshold = float(interp_func_std(fpr_threshold))
+
         print(f"  {data['label']}: AUC = {data['auc_mean']:.4f} ± {data['auc_std']:.4f} (n={data['n_seeds']})")
+        print(f"    Signal eff. @ bkg pass-through {fpr_threshold}: {tpr_at_threshold:.4f} ± {tpr_std_at_threshold:.4f}")
         summary[pair_key] = {
             'label': data['label'],
             'auc_mean': data['auc_mean'],
             'auc_std': data['auc_std'],
             'auc_values': data['auc_values'],
-            'n_seeds': data['n_seeds']
+            'n_seeds': data['n_seeds'],
+            f'tpr_at_fpr_{fpr_threshold}': tpr_at_threshold,
+            f'tpr_std_at_fpr_{fpr_threshold}': tpr_std_at_threshold,
         }
     
     # Plot averaged ROC curves
